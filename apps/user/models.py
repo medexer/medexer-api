@@ -41,4 +41,3 @@ class User(AbstractBaseUser, PermissionsMixin):
             return f"{self.fullName}"
         if self.hospitalName:
             return f"{self.hospitalName}"
-

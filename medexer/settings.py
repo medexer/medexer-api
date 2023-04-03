@@ -39,6 +39,7 @@ LOCAL_APPS = [
     "apps.donor",
     "apps.common",
     "apps.hospital",
+    "apps.registration",
     "apps.administrator",
 ]
 
