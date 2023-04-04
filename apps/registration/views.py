@@ -60,6 +60,9 @@ class DonorKYCViewSet(APIView):
 
             if serializer.is_valid():
                 serializer.save()
+                donor.is_kyc_updated = True
+                donor.save()
+                
                 return Response(
                     data=customResponse(
                         "Donor KYC successfully captured",
@@ -143,6 +146,9 @@ class HospitalKYBViewSet(APIView):
 
             if serializer.is_valid():
                 serializer.save()
+                hospital.is_kyc_updated = True
+                hospital.save()
+                
                 return Response(
                     data=customResponse(
                         "Hospital KYB successfully captured",
