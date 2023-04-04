@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+sys.path.insert(0, os.path.join(BASE_DIR, "apps"))
 
 load_dotenv()
 
@@ -30,7 +30,7 @@ SECRET_KEY = "django-insecure-ecssc&_^&h=b5z&&ta@%!l#w8f%yguir8c05gpq_(tb1jvpj-x
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -108,7 +108,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "medexer.wsgi.application"
 
 
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -145,6 +144,15 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
 
 
+# CELERY
+# CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
+CELERY_BROKER_URL = "amqps://buldhxfb:Ag7oFX33XFqgz7C7dNZv3VvavgAk_viN@stingray.rmq.cloudamqp.com/buldhxfb"
+CELERY_ACCEPT_CONTENT = {"application/json"}
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+# CELERY_TIMEZONE = 'Europe/Paris'
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
+
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -158,7 +166,6 @@ DATABASES = {
         "PORT": os.getenv("DB_PORT"),
     }
 }
-
 
 
 # Password validation

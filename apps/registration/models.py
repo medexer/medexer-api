@@ -1,6 +1,6 @@
 from django.db import models
 from apps.user.models import User
-from apps.common.media import kyc_document_path
+from apps.common.media import kyc_document_path, kyb_document_path
 from apps.common.models import TimeStampedUUIDModel, BloodGroup, Genotype, IdentificationType
 
 
@@ -22,9 +22,12 @@ class KnowYourCustomer(TimeStampedUUIDModel):
 
 
 class KnowYourBusiness(TimeStampedUUIDModel):
-    identificationType = models.CharField(max_length=255, choices=IdentificationType.choices, blank=True, null=True)
-    documentUploadCover =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
-    documentUploadRear =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
+    cacRegistrationID = models.CharField(max_length=255, blank=True, null=True)
+    websiteUrl = models.CharField(max_length=255, blank=True, null=True)
+    logo = models.ImageField(upload_to=kyb_document_path, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    identificationType = models.CharField(max_length=255, choices=IdentificationType.choices, default="CACCERTIFICATE", blank=True, null=True)
     hospitalID = models.CharField(max_length=255, blank=True, null=True)
     hospital = models.ForeignKey(User, related_name="kyb_hospital", blank=True, null=True, on_delete=models.DO_NOTHING)
     

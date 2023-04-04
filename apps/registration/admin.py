@@ -10,5 +10,5 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(KnowYourBusiness)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "pkid", "hospital", "documentUploadCover"]
+    list_display = ["id", "pkid", "hospital", "logo"]
 
