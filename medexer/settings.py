@@ -168,8 +168,8 @@ CELERY_RESULT_BACKEND = "redis://localhost:6379"
 # }
 
 DATABASES = {
-    'default': dj_database_url.parse(
-        'postgres://medex_user:gKuWJLnJ6NSDPAiE2Nc617zIOZooZWI0@dpg-cgmai5jhp8udl0s9tnag-a.oregon-postgres.render.com/medex',
+    'default': dj_database_url.parse(os.getenv("DATABASE_URL")
+        ,
         conn_max_age=600,
         conn_health_checks=True,
     )
