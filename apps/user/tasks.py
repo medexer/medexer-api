@@ -8,8 +8,10 @@ from django.core.mail import EmailMultiAlternatives
 
 load_dotenv()
 
-@shared_task(bind=True)
-def send_forgotpassword_mail(self, target_mail, token):
+# @shared_task(bind=True)
+# def send_forgotpassword_mail(self, target_mail, token):
+
+def send_forgotpassword_mail(target_mail, token):
     try:
         # mail_subject = "Welcome on Board!"
         # send_mail(

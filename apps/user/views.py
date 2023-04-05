@@ -194,7 +194,8 @@ class DonorForgotPasswordViewSet(APIView):
             user.otp = otp_id_generator()
             user.save()
 
-            send_forgotpassword_mail.delay(user.email, user.otp)
+            # send_forgotpassword_mail.delay(user.email, user.otp)
+            send_forgotpassword_mail(user.email, user.otp)
 
             return Response(
                 data=customResponse(
