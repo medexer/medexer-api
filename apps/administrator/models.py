@@ -8,7 +8,8 @@ class Notification(TimeStampedUUIDModel):
     notificationType = models.CharField(max_length=255, choices=NotificationType.choices, blank=True, null=True)
     userID = models.CharField(max_length=255, blank=True, null=True)
     author = models.ForeignKey(User, related_name="notification_author", blank=True, null=True, on_delete=models.DO_NOTHING)
-    
+    # hospitalID = models.CharField(max_length=255, blank=True, null=True)
+
     def __str__(self):
         return f"{self.notificationType} - {self.message[0:10]}"
 

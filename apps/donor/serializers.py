@@ -6,3 +6,7 @@ class DonorSerializer(serializers.ModelSerializer):
 		model = Appointment
 		fields = ['pkid','id','date','donor','message','hospital']
 	
+
+	def hospitals(self):
+		hospital = User.objects.filter(is_hospital=True)
+		return hospital
