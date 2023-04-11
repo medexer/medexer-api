@@ -11,9 +11,8 @@ from apps.administrator.models import *
 def create_notification(sender, instance, created, **kwargs):
     
     if created:
-        user_details = User.objects.filter(fullName=instance.donor).first()  
-        #  make sure you add hopital id to that notification table  
+        user_details = User.objects.get(fullName=instance.donor)
         notification = Notification.objects.create(author=user_details,
         message=instance.message,
-        userID=user_details.donorID,notificationType='HOSPITAL')
+        userID=user_details.id,notificationType='HOSPITAL',hospitalID=instance.hospital)
         notification.save()

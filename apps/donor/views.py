@@ -46,8 +46,9 @@ class DonorDetailView(generics.GenericAPIView):
 		return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 	def put(self, request, id):
-		data = request.data		
-		serializer = self.serializer_class(data=data)
+		data = request.data	
+		instance = Appointment.objects.get(pkid=id)		
+		serializer = self.serializer_class(instance,data=data)		
 			
 		if serializer.is_valid():
 			serializer.save()
