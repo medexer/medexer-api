@@ -24,6 +24,7 @@ urlpatterns = (
         path('medexer/api/v1/', include('apps.user.urls')),
         path('medexer/api/v1/registration/', include('apps.registration.urls')),
         path('medexer/api/v1/donor/', include('apps.donor.urls')),
+        path('medexer/api/v1/hospital/', include('apps.hospital.urls')),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
