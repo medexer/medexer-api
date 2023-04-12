@@ -6,8 +6,9 @@ from . import serializers
 from .models import *
 
 
+
 # Create your views here.
-class HospitalListView(generics.GenericAPIView):
+class InventroyListView(generics.GenericAPIView):
 
     serializer_class = serializers.InventroySerializer
     queryset = Inventory.objects.all()
@@ -17,7 +18,7 @@ class HospitalListView(generics.GenericAPIView):
         serializer = self.serializer_class(instance=inventroy,many=True)		
         return Response(data=serializer.data,status=status.HTTP_200_OK)
 
-inventory_list_viewset = HospitalListView.as_view()
+inventory_list_viewset = InventroyListView.as_view()
 
 
 class InventroyDetailView(generics.GenericAPIView):
@@ -49,3 +50,16 @@ class InventroyDetailView(generics.GenericAPIView):
         return Response(data={'message':'success'}, status=status.HTTP_200_OK)
 
 inventroy_detail_viewset = InventroyDetailView.as_view() 	
+
+
+class CenterListView(generics.GenericAPIView):
+    
+    serializer_class =  serializers.CenterSerializer
+    queryset = User.objects.filter(is_hospital=True)
+
+    def get(self, request):        
+        centers = User.objects.filter(is_hospital=True)
+        serializer = self.serializer_class(instance=centers,many=True)		
+        return Response(data=serializer.data,status=status.HTTP_200_OK)
+
+center_list_viewset = CenterListView.as_view()
