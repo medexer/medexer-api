@@ -60,6 +60,32 @@ class CenterListView(generics.GenericAPIView):
     def get(self, request):        
         centers = User.objects.filter(is_hospital=True)
         serializer = self.serializer_class(instance=centers,many=True)		
-        return Response(data=serializer.data,status=status.HTTP_200_OK)
+        return Response(data=serializer.data,status=status.HTTP_200_OK)  
+
 
 center_list_viewset = CenterListView.as_view()
+
+class CenterDetailView(generics.GenericAPIView):
+    
+    serializer_class =  serializers.CenterSerializer
+    queryset = User.objects.filter(is_hospital=True)
+
+    def get(self,request,id):    		
+        center = get_object_or_404(User, pk=id)
+        serializer = self.serializer_class(instance=center)
+        if serializer.is_valid:
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # def put(self, request, id):
+    #     data = request.data	
+    #     instance = User.objects.get(pkid=id)		
+    #     serializer = self.serializer_class(instance,data=data)		
+    
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(data=serializer.data, status=status.HTTP_200_OK)
+    #     return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+center_detail_viewset = CenterDetailView.as_view()
