@@ -4,7 +4,7 @@ from .models import KnowYourCustomer, KnowYourBusiness
 
 @admin.register(KnowYourCustomer)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "pkid", "donor", "bloodGroup", "documentUploadCover"]
+    list_display = ["id", "pkid", "donor", "documentUploadCover"]
 
 
 
