@@ -7,4 +7,6 @@ urlpatterns = [
     path("centers/",views.center_list_viewset, name="centers"),
     path("center/<str:id>", views.center_detail_viewset, name="center-detail"),
     path("appointments", views.appointment_viewset, name="appointments"),
+    path("center_notification/",views.notification_viewset,name='center_notification')    
+    
 ]

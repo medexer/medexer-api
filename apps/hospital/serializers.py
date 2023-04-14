@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.user.models import User
 from apps.registration.models import KnowYourCustomer
 from apps.donor.models import Appointment, AppointmentActivity
+from apps.administrator.models import *
 
 
 class InventorySerializer(serializers.ModelSerializer):
@@ -75,5 +76,9 @@ class AppointmentSerializer(serializers.ModelSerializer):
             message = activity.message
         
         return message
-        
-        
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model= Notification
+        fields = ['message','notificationType','id','userID','author','hospitalID']
