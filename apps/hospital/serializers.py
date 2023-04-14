@@ -2,7 +2,7 @@ from .models import *
 from rest_framework import serializers
 from apps.user.models import User
 from apps.registration.models import KnowYourCustomer
-from apps.donor.models import Appointment, AppointmentActivity
+from apps.donor.models import Appointment, DonationActivity
 from apps.administrator.models import *
 
 
@@ -42,43 +42,44 @@ class CenterSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     donorInfo = serializers.SerializerMethodField()
     recentActivity = serializers.SerializerMethodField()
+
     class Meta:
         model = Appointment
         fields = [
-            'id',
-            'pkid',
-            'date',
-            'donor',
-            'donorInfo',
-            'hospital',
-            'message',
-            'recentActivity',
+            "id",
+            "pkid",
+            "date",
+            "donor",
+            "donorInfo",
+            "hospital",
+            "message",
+            "recentActivity",
         ]
-        
+
     def get_donorInfo(self, obj):
         donor = User.objects.get(pkid=obj.donor.pkid)
         donorKyc = KnowYourCustomer.objects.get(donor=obj.donor.pkid)
-        
+
         data = {
             "id": donor.id,
             "pkid": donor.pkid,
             "fullName": donor.fullName,
             "bloodGroup": donorKyc.bloodGroup,
         }
-        
+
         return data
 
     def get_recentActivity(self, obj):
         message = ""
-        activity = AppointmentActivity.objects.filter(appointment=obj.pkid).first()
-        
+        activity = DonationActivity.objects.filter(appointment=obj.pkid).first()
+
         if activity:
             message = activity.message
-        
+
         return message
 
-class NotificationSerializer(serializers.ModelSerializer):
 
+class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model= Notification
-        fields = ['message','notificationType','id','userID','author','hospitalID']
+        model = Notification
+        fields = ["message", "notificationType", "id", "userID", "author", "hospitalID"]

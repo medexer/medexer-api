@@ -4,16 +4,17 @@ from .models import *
 from rest_framework import generics,status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-# Create your views here.
+from rest_framework.permissions import IsAuthenticated
 
 class DonorCreateListView(generics.GenericAPIView):
 	'''set serializer class and query set'''
-
-	serializer_class = serializers.DonorSerializer
 	queryset = Appointment.objects.all()
+	permission_classes = [IsAuthenticated]
+	serializer_class = serializers.DonorSerializer
 
 	def get(self,request):
-		appointment = Appointment.objects.all()
+		appointment = Appointment.objects.filter(donor=request.user.pkid)
+  
 		serializer = self.serializer_class(instance=appointment,many=True)		
 		return Response(data=serializer.data,status=status.HTTP_200_OK)
 
