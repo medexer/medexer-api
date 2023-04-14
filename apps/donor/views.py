@@ -13,11 +13,24 @@ class DonorCreateListView(generics.GenericAPIView):
 	serializer_class = serializers.DonorSerializer
 
 	def get(self,request):
-		appointment = Appointment.objects.filter(donor=request.user.pkid)
+		try:
+			appointment = Appointment.objects.filter(donor=request.user.pkid)
   
-		serializer = self.serializer_class(instance=appointment,many=True)		
-		return Response(data=serializer.data,status=status.HTTP_200_OK)
+			serializer = self.serializer_class(instance=appointment,many=True)		
+			return Response(data=CustomResponse("Donor appointments fetched successfully","SUCCESS",200,
+						serializer.data,),status=status.HTTP_200_OK,)
+		except Exception as e:
+			print(f"[FETCH-DONOR-APPOINTMENTS-ERROR] :: {e}")
+			return Response(data=CustomResponse(
+					f"An error occured while fetching donor appointment. {e}",
+					"BAD REQUEST",
+					400,
+					None,
+				),
+				status=status.HTTP_400_BAD_REQUEST,
+			)
 
+		
 
 	def post(self,request):
 		data = request.data

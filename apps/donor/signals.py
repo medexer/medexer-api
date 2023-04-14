@@ -9,10 +9,18 @@ from apps.administrator.models import *
 
 @receiver(post_save, sender=Appointment)
 def create_notification(sender, instance, created, **kwargs):
-    
-    if created:
-        user_details = User.objects.get(fullName=instance.donor)
-        notification = Notification.objects.create(author=user_details,
-        message=instance.message,
-        userID=user_details.id,notificationType='HOSPITAL',hospitalID=instance.hospital)
+
+    if not created:
+        user_data = User.objects.get(fullName=instance.donor)
+        notification = Notification.objects.create(author=instance.donor,
+        message=instance.message + " " + str(instance.date),
+        userID=user_data.id,notificationType='DONOR',hospitalID=instance.hospital)
         notification.save()
+
+    user_details = User.objects.get(fullName=instance.donor)
+    notification = Notification.objects.create(author=user_details,
+    message=instance.message,
+    userID=user_details.id,notificationType='HOSPITAL',hospitalID=instance.hospital)
+    notification.save()
+
+  
