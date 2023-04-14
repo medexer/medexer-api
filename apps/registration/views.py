@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from apps.user.models import User
-from apps.common.custom_response import customResponse
+from apps.common.custom_response import CustomResponse
 from .models import KnowYourBusiness, KnowYourCustomer
 from apps.common.validations import registration_validations
 from .serializers import DonorKYCSerializer, HospitalKYBSerializer
@@ -18,9 +18,11 @@ class DonorKYCViewSet(APIView):
         """
         Allows for a donor to process his kyc
         """
-        if not registration_validations.validate_donor_kyc_capture(request.data, request.FILES):
+        if not registration_validations.validate_donor_kyc_capture(
+            request.data, request.FILES
+        ):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     registration_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -35,7 +37,7 @@ class DonorKYCViewSet(APIView):
 
             if kyc:
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Donor KYC already captured",
                         "DUPLICATE-ERROR",
                         400,
@@ -62,9 +64,9 @@ class DonorKYCViewSet(APIView):
                 serializer.save()
                 donor.is_kyc_updated = True
                 donor.save()
-                
+
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Donor KYC successfully captured",
                         "SUCCESS",
                         201,
@@ -73,7 +75,7 @@ class DonorKYCViewSet(APIView):
                     status=status.HTTP_201_CREATED,
                 )
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "An error occured while uploading donor kyc.",
                     "BAD REQUEST",
                     400,
@@ -85,7 +87,7 @@ class DonorKYCViewSet(APIView):
         except Exception as e:
             print(f"[DONOR-KYC-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"Failure occurred when uploading donor kyc. {e}",
                     "BAD REQUEST",
                     400,
@@ -106,9 +108,11 @@ class HospitalKYBViewSet(APIView):
         """
         Allows for a donor to process his kyc
         """
-        if not registration_validations.validate_hospital_kyb_capture(request.data, request.FILES):
+        if not registration_validations.validate_hospital_kyb_capture(
+            request.data, request.FILES
+        ):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     registration_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -119,11 +123,13 @@ class HospitalKYBViewSet(APIView):
 
         try:
             hospital = User.objects.get(hospitalID=request.user.hospitalID)
-            kyc = KnowYourBusiness.objects.filter(hospitalID=hospital.hospitalID).first()
+            kyc = KnowYourBusiness.objects.filter(
+                hospitalID=hospital.hospitalID
+            ).first()
 
             if kyc:
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Hospital KYB already captured",
                         "DUPLICATE-ERROR",
                         400,
@@ -148,9 +154,9 @@ class HospitalKYBViewSet(APIView):
                 serializer.save()
                 hospital.is_kyc_updated = True
                 hospital.save()
-                
+
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Hospital KYB successfully captured",
                         "SUCCESS",
                         201,
@@ -159,7 +165,7 @@ class HospitalKYBViewSet(APIView):
                     status=status.HTTP_201_CREATED,
                 )
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "An error occured while uploading hospital kyb.",
                     "BAD REQUEST",
                     400,
@@ -171,7 +177,7 @@ class HospitalKYBViewSet(APIView):
         except Exception as e:
             print(f"[HOSPITAL-KYB-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"Failure occurred when uploading hospital kyb. {e}",
                     "BAD REQUEST",
                     400,

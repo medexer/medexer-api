@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from apps.common.validations import auth_validations
-from apps.common.custom_response import customResponse
+from apps.common.custom_response import CustomResponse
 from .serializers import DonorAuthSerializer, HospitalAuthSerializer
 from .tasks import send_forgotpassword_mail, send_hospital_welcome_mail
 from apps.common.id_generator import (
@@ -27,7 +27,7 @@ class DonorSignUpViewSet(APIView):
         """
         if not auth_validations.validate_donor_signup(request.data):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     auth_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -61,7 +61,7 @@ class DonorSignUpViewSet(APIView):
             if serializer.is_valid():
                 serializer.save()
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Donor signup successful",
                         "SUCCESS",
                         201,
@@ -70,7 +70,7 @@ class DonorSignUpViewSet(APIView):
                     status=status.HTTP_201_CREATED,
                 )
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "An error occured during donor signup.",
                     "BAD REQUEST",
                     400,
@@ -81,7 +81,7 @@ class DonorSignUpViewSet(APIView):
         except Exception as e:
             print(f"[DONOR-SIGNUP-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"An error occured during donor signup. {e}",
                     "BAD REQUEST",
                     400,
@@ -103,7 +103,7 @@ class DonorSignInViewSet(APIView):
         """
         if not auth_validations.validate_donor_signin(request.data):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     auth_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -117,7 +117,7 @@ class DonorSignInViewSet(APIView):
 
             if user is None:
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Donor is not registered",
                         "NOT-FOUND",
                         400,
@@ -127,7 +127,7 @@ class DonorSignInViewSet(APIView):
                 )
             if not user.check_password(request.data["password"]):
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Unauthorized",
                         "INVALID-CREDENTIALS",
                         400,
@@ -142,7 +142,7 @@ class DonorSignInViewSet(APIView):
             serializer = self.serializer_class(user)
 
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "Donor login successful",
                     "SUCCESS",
                     200,
@@ -157,7 +157,7 @@ class DonorSignInViewSet(APIView):
         except Exception as e:
             print(f"[DONOR-LOGIN-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"An error occured during donor login. {e}",
                     "BAD REQUEST",
                     400,
@@ -179,7 +179,7 @@ class DonorForgotPasswordViewSet(APIView):
         """
         if not auth_validations.validate_donor_forgotpassword(request.data):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     auth_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -198,7 +198,7 @@ class DonorForgotPasswordViewSet(APIView):
             send_forgotpassword_mail(user.email, user.otp)
 
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "Email successfully sent",
                     "SUCCESS",
                     200,
@@ -209,7 +209,7 @@ class DonorForgotPasswordViewSet(APIView):
         except Exception as e:
             print(f"[DONOR-FORGOT-PASSWORD-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"Failure occurred during donor forgot password. {e}",
                     "BAD REQUEST",
                     400,
@@ -231,7 +231,7 @@ class DonorResetPasswordViewSet(APIView):
         """
         if not auth_validations.validate_donor_resetpassword(request.data):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     auth_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -248,7 +248,7 @@ class DonorResetPasswordViewSet(APIView):
             user.save()
 
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "Password reset successfully",
                     "SUCCESS",
                     200,
@@ -259,7 +259,7 @@ class DonorResetPasswordViewSet(APIView):
         except Exception as e:
             print(f"[DONOR-RESET-PASSWORD-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"Failure occurred during donor reset password. {e}",
                     "BAD REQUEST",
                     400,
@@ -281,7 +281,7 @@ class HospitalSignUpViewSet(APIView):
         """
         if not auth_validations.validate_hospital_signup(request.data):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     auth_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -312,12 +312,12 @@ class HospitalSignUpViewSet(APIView):
             if serializer.is_valid():
                 serializer.save()
                 send_hospital_welcome_mail(
-                    serializer.data['email'], 
-                    serializer.data['hospitalName'], 
-                    serializer.data['hospitalID'],
+                    serializer.data["email"],
+                    serializer.data["hospitalName"],
+                    serializer.data["hospitalID"],
                 )
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Hospital signup successful",
                         "SUCCESS",
                         201,
@@ -326,7 +326,7 @@ class HospitalSignUpViewSet(APIView):
                     status=status.HTTP_201_CREATED,
                 )
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "An error occured during hospital signup.",
                     "BAD REQUEST",
                     400,
@@ -337,7 +337,7 @@ class HospitalSignUpViewSet(APIView):
         except Exception as e:
             print(f"[HOSPITAL-SIGNUP-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"An error occured during hospital signup. {e}",
                     "BAD REQUEST",
                     400,
@@ -359,7 +359,7 @@ class HospitalSignInViewSet(APIView):
         """
         if not auth_validations.validate_hospital_signin(request.data):
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     auth_validations.validation_message,
                     "BAD REQUEST",
                     400,
@@ -376,7 +376,7 @@ class HospitalSignInViewSet(APIView):
 
             if hospital is None:
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Hospital is not registered",
                         "NOT-FOUND",
                         400,
@@ -386,7 +386,7 @@ class HospitalSignInViewSet(APIView):
                 )
             if not hospital.check_password(request.data["password"]):
                 return Response(
-                    data=customResponse(
+                    data=CustomResponse(
                         "Unauthorized",
                         "INVALID-CREDENTIALS",
                         400,
@@ -401,7 +401,7 @@ class HospitalSignInViewSet(APIView):
             serializer = self.serializer_class(hospital)
 
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     "Hospital login successful",
                     "SUCCESS",
                     200,
@@ -416,7 +416,7 @@ class HospitalSignInViewSet(APIView):
         except Exception as e:
             print(f"[HOSPITAL-LOGIN-ERROR] :: {e}")
             return Response(
-                data=customResponse(
+                data=CustomResponse(
                     f"An error occured during hospital login. {e}",
                     "BAD REQUEST",
                     400,
