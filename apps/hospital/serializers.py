@@ -13,15 +13,9 @@ class InventorySerializer(serializers.ModelSerializer):
             "id",
             "pk",
             "hospitalID",
-            "hospital",
-            "OPositive",
-            "ONegative",
-            "ABPositive",
-            "ABNegative",
-            "APositive",
-            "ANegative",
-            "BPositive",
-            "BNegative",
+            "hospital",  
+            "bloodUnits",
+            "bloodGroup"          
         ]
 
 

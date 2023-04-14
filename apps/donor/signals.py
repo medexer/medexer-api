@@ -9,7 +9,7 @@ from apps.administrator.models import *
 
 @receiver(post_save, sender=Appointment)
 def create_notification(sender, instance, created, **kwargs):
-
+    
     if not created:
         user_data = User.objects.get(fullName=instance.donor)
         notification = Notification.objects.create(author=instance.donor,
