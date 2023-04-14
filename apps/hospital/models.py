@@ -7,7 +7,7 @@ class Inventory(TimeStampedUUIDModel):
     # bloodGroup = models.CharField(max_length=255, choices=BloodGroup.choices, blank=True, null=True)
     # bloodUnits = models.PositiveIntegerField(default=0, blank=True, null=True)
     hospitalID = models.CharField(max_length=255, blank=True, null=True)
-    hospital = models.ForeignKey(User, related_name="inventory_hospitalID", blank=True, null=True, on_delete=models.DO_NOTHING)
+    hospital = models.ForeignKey(User, related_name="inventory_hospitalID", blank=True, null=True, on_delete=models.CASCADE)
     OPositive = models.PositiveIntegerField(default=0, blank=True, null=True)
     ONegative = models.PositiveIntegerField(default=0, blank=True, null=True)
     ABPositive = models.PositiveIntegerField(default=0, blank=True, null=True)
@@ -27,7 +27,7 @@ class Inventory(TimeStampedUUIDModel):
 class InventoryActivity(TimeStampedUUIDModel):
     activity = models.CharField(max_length=255, blank=True, null=True)
     hospitalID = models.CharField(max_length=255, blank=True, null=True)
-    hospital = models.ForeignKey(User, related_name="inventory_activity_hospitalID", blank=True, null=True, on_delete=models.DO_NOTHING)
+    hospital = models.ForeignKey(User, related_name="inventory_activity_hospitalID", blank=True, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.hospital} - {self.activity}"

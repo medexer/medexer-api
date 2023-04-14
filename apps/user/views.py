@@ -7,10 +7,10 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
-from .tasks import send_forgotpassword_mail
 from apps.common.validations import auth_validations
 from apps.common.custom_response import customResponse
 from .serializers import DonorAuthSerializer, HospitalAuthSerializer
+from .tasks import send_forgotpassword_mail, send_hospital_welcome_mail
 from apps.common.id_generator import (
     donor_id_generator,
     otp_id_generator,
@@ -311,6 +311,11 @@ class HospitalSignUpViewSet(APIView):
 
             if serializer.is_valid():
                 serializer.save()
+                send_hospital_welcome_mail(
+                    serializer.data['email'], 
+                    serializer.data['hospitalName'], 
+                    serializer.data['hospitalID'],
+                )
                 return Response(
                     data=customResponse(
                         "Hospital signup successful",
@@ -425,4 +430,4 @@ hospital_signin_viewset = HospitalSignInViewSet.as_view()
 
 
 def geeks_view(request):
-    return render(request, "user/forgotpassword.html")
+    return render(request, "user/hospital_welcome_template.html")
