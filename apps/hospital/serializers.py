@@ -1,6 +1,7 @@
 from .models import *
 from rest_framework import serializers
 from apps.user.models import User
+from apps.administrator.models import *
 
 class InventroySerializer(serializers.ModelSerializer):	
 	class Meta:
@@ -21,3 +22,10 @@ class CenterSerializer(serializers.ModelSerializer):
             "location",
             "is_active",            
         ]
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model= Notification
+        fields = ['message','notificationType','id','userID','author','hospitalID']

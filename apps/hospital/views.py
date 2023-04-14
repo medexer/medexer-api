@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from . import serializers  
 from .models import *
+from apps.administrator.models import *
 
 
 
@@ -89,3 +90,18 @@ class CenterDetailView(generics.GenericAPIView):
 
 
 center_detail_viewset = CenterDetailView.as_view()
+
+
+class GetCenterNotificationView(generics.GenericAPIView):
+    
+    serializer_class =  serializers.NotificationSerializer
+    queryset = Notification.objects.all()
+
+    def get(self,request):    		
+        notification = Notification.objects.filter(hospitalID=request.user.hospitalID)
+        serializer = self.serializer_class(instance=notification)
+        if serializer.is_valid:
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+notification_viewset = GetCenterNotificationView.as_view()

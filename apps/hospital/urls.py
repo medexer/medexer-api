@@ -6,6 +6,6 @@ urlpatterns = [
     path("inventroy/<str:id>", views.inventroy_detail_viewset, name="detail-inventroy"),
     path("centers/",views.center_list_viewset, name="centers"),
     path("center/<str:id>", views.center_detail_viewset, name="center-detail"),
-    
+    path("center_notification/",views.notification_viewset,name='center_notification')    
     
 ]
