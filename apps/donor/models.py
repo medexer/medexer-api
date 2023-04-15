@@ -5,17 +5,23 @@ from apps.common.models import TimeStampedUUIDModel
 
 class Appointment(TimeStampedUUIDModel):
     date = models.DateField(blank=True, null=True)    
-    donor = models.ForeignKey(User, related_name="appointment_donorID", blank=True, null=True, on_delete=models.DO_NOTHING)
-    hospital = models.ForeignKey(User, related_name="appointment_hospitalID", blank=True, null=True, on_delete=models.DO_NOTHING)
+    donor = models.ForeignKey(User, related_name="appointment_donor", blank=True, null=True, on_delete=models.CASCADE)
+    hospital = models.ForeignKey(User, related_name="appointment_hospital", blank=True, null=True, on_delete=models.CASCADE)
     message = models.TextField(blank=True, null=True)
     isDonated = models.BooleanField(default=False,null=True,blank=True)
     
     def __str__(self):
         return f"{self.donor} - {self.hospital} {self.date}"
 
-class DonationActivity(TimeStampedUUIDModel):
-    appointment = models.ForeignKey(Appointment, related_name="donation_activity", blank=True, null=True, on_delete=models.DO_NOTHING)
+class DonationHistory(TimeStampedUUIDModel):
+    donor = models.ForeignKey(User, related_name="donation_history_donor", blank=True, null=True, on_delete=models.DO_NOTHING)
+    # appointment = models.ForeignKey(Appointment, related_name="appointment_activity", blank=True, null=True, on_delete=models.DO_NOTHING)
     message = models.TextField(blank=True, null=True)
     
+    class Meta:
+        verbose_name_plural = ('Donation History')
+    
+    
     def __str__(self):
-        return f"{self.appointment} - {self.message[:10]}"
+        return f"{self.donor} - {self.message[:10]}"
+    

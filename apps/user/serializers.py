@@ -15,6 +15,7 @@ class DonorAuthSerializer(serializers.ModelSerializer):
             "is_donor",
             "otp",
             "password",
+            "is_kyc_updated",
         ]
         extra_kwargs = {"password": {"write_only": True}}
         
@@ -46,6 +47,7 @@ class HospitalAuthSerializer(serializers.ModelSerializer):
             "is_hospital",
             "otp",
             "password",
+            "is_kyc_updated",
         ]
         extra_kwargs = {"password": {"write_only": True}}
     

@@ -6,76 +6,152 @@ from rest_framework.permissions import IsAuthenticated
 from . import serializers
 from .models import Inventory
 from apps.user.models import User
-from apps.donor.models import Appointment
-from apps.common.custom_response import CustomResponse
-from . import serializers  
+from . import serializers
 from .models import *
-from apps.administrator.models import *
 from django.db.models import Q
+from apps.administrator.models import *
+from apps.donor.models import Appointment, DonationHistory
+from apps.common.custom_response import CustomResponse, CurrentTimeStamp
 
 
-# Create your views here.
-class InventoryListView(generics.GenericAPIView):
-    serializer_class = serializers.InventorySerializer
+class InventoryItemHistoryViewSet(generics.GenericAPIView):
     queryset = Inventory.objects.all()
     permission_classes = [IsAuthenticated]
+    serializer_class = serializers.InventoryHistorySerializer
+
+    def get(self, request, bloodGroup):
+        try:
+            inventory = InventoryActivity.objects.filter(
+                Q(bloodGroup=bloodGroup) & Q(hospital=request.user.pkid)
+            )
+
+            serializer = self.serializer_class(instance=inventory, many=True)
+
+            return Response(
+                data=CustomResponse(
+                    f"Fetched hospital inventory item activity successfully.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-INVENTORY-ACTIVITY-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching inventory item activity. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+inventory_item_history_viewset = InventoryItemHistoryViewSet.as_view()
+
+
+class InventoryItemViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.InventorySerializer
+
+    def put(self, request, bloodGroup):
+        try:
+            activity = ""
+            data = {
+                "bloodUnits": int(request.data["units"]),
+            }
+
+            instance = Inventory.objects.get(
+                bloodGroup=bloodGroup, hospital=request.user.pkid
+            )
+
+            if instance.bloodUnits < int(data['bloodUnits']):
+                activity = f"{request.data['count']} added on {CurrentTimeStamp()}"
+            else:
+                activity = f"{request.data['count']} removed on {CurrentTimeStamp()}"
+
+            serializer = self.serializer_class(instance, data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                InventoryActivity.objects.create(
+                    activity=activity,
+                    hospital=request.user,
+                    bloodGroup=request.data['bloodGroup'],
+                )
+                
+                _serializer = self.serializer_class(instance)
+                
+                return Response(
+                    data=CustomResponse(
+                        "Inventory item updated successfully",
+                        "SUCCESS",
+                        200,
+                        _serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating inventory item.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[UPDATE-INVENTORY-ITEM-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching inventory item. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+inventory_item_detail_viewset = InventoryItemViewSet.as_view()
+
+
+class HospitalInventoryViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.InventorySerializer
 
     def get(self, request):
-        inventroy = Inventory.objects.all()
-        serializer = self.serializer_class(instance=inventroy, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        try:
+            inventoryItems = Inventory.objects.filter(hospital=request.user.pkid)
+
+            serializer = self.serializer_class(instance=inventoryItems, many=True)
+
+            return Response(
+                data=CustomResponse(
+                    f"Fetched hospital inventory successfully.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-INVENTORY-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital inventory. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
-inventory_list_viewset = InventoryListView.as_view()
-
-
-class InventoryListView(generics.GenericAPIView):
-    serializer_class = serializers.InventorySerializer
-    permission_classes = [IsAuthenticated]
-    queryset = Inventory.objects.all()
-
-    def get(self, request, id):
-        inventory = get_object_or_404(Inventory, pk=id)
-        serializer = self.serializer_class(instance=inventory)
-        if serializer.is_valid:
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def put(self, request, id):
-        data = request.data
-        instance = Inventory.objects.get(pkid=id)
-        serializer = self.serializer_class(instance, data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=CustomResponse(
-                "Hospital inventroy updated successfully","SUCCESS",200,
-                serializer.data,),status=status.HTTP_200_OK,)
-        return Response(data=CustomResponse(f"An error occured while updating hospital inventroy ",
-            "BAD REQUEST",400,None,),status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, id):
-        inventory = get_object_or_404(Inventory, pk=id)
-        inventory.delete()
-        return Response(data={"message": "success"}, status=status.HTTP_200_OK)
-
-
-inventroy_detail_viewset = InventoryListView.as_view()
-
-class GetAllHospitalInventroy(generics.GenericAPIView):
-    serializer_class = serializers.InventorySerializer
-    permission_classes = [IsAuthenticated]
-    queryset = Inventory.objects.all()
-
-    def get(self, request):       
-        inventory = Inventory.objects.filter(hospital=request.user)
-        serializer = self.serializer_class(instance=inventory,many=True)
-        if serializer.is_valid:
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-getallhospital_inventroy_viewset = GetAllHospitalInventroy.as_view()
-
+hospital_inventory_viewset = HospitalInventoryViewSet.as_view()
 
 
 class CenterListView(generics.GenericAPIView):
@@ -121,71 +197,145 @@ center_detail_viewset = CenterDetailView.as_view()
 
 
 class HospitalAppointmentViewSet(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]    
+    permission_classes = [IsAuthenticated]
     serializer_class = serializers.AppointmentSerializer
 
-    def get(self, request):       
-        appointments = Appointment.objects.filter(hospital=request.user)
+    def get(self, request):
+        appointments = Appointment.objects.filter(
+            Q(hospital=request.user.pkid) & Q(isDonated=False)
+        )
         serializer = self.serializer_class(appointments, many=True)
+
         if serializer.is_valid:
-            return Response(data=CustomResponse(
-                "Hospital appointments fetched successfully","SUCCESS",200,
-                serializer.data,),status=status.HTTP_200_OK,)
-        return Response(data=CustomResponse(f"An error occured while fetching hospital appointment ",
-            "BAD REQUEST",400,None,),status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                data=CustomResponse(
+                    "Hospital appointments fetched successfully",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        return Response(
+            data=CustomResponse(
+                f"An error occured while fetching hospital appointment ",
+                "BAD REQUEST",
+                400,
+                None,
+            ),
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def put(self, request, pkid):
+        try:
+            data = {"date": request.data["date"]}
+
+            instance = Appointment.objects.get(pkid=pkid)
+            serializer = self.serializer_class(instance, data=data)
+            print(data)
+            if serializer.is_valid():
+                serializer.save()
+
+                Notification.objects.create(
+                    notificationType="DONOR",
+                    author=request.user,
+                    recipient=instance.donor,
+                    message=request.data["message"],
+                )
+
+                return Response(
+                    data=CustomResponse(
+                        "Hospital appointment rescheduled successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during appointment reschedule",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[RESCHEDULE-APPOINTMENT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during appointment reschedule. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 hospital_appointment_viewset = HospitalAppointmentViewSet.as_view()
 
-class UpdateHospitalApointmentViewSet(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]    
-    serializer_class = serializers.AppointmentSerializer
-
-    def put(self, request, id):
-        data = request.data
-        instance = Appointment.objects.get(pkid=id)
-        serializer = self.serializer_class(instance, data=data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=CustomResponse(
-                "Hospital appointments update successfully","SUCCESS",200,
-                serializer.data,),status=status.HTTP_200_OK,)
-        return Response(data=CustomResponse(f"An error occured while fetching hospital appointment ",
-            "BAD REQUEST",400,None,),status=status.HTTP_400_BAD_REQUEST)
-
-        
-
-update_hospital_appointment_viewset = UpdateHospitalApointmentViewSet.as_view()
 
 class GetCenterNotificationView(generics.GenericAPIView):
-    
-    serializer_class =  serializers.NotificationSerializer
+    serializer_class = serializers.NotificationSerializer
     queryset = Notification.objects.all()
 
-    def get(self,request):    		
-        notification = Notification.objects.filter(hospitalID=request.user.hospitalID)
-        serializer = self.serializer_class(instance=notification)
-        if serializer.is_valid:
+    def get(self, request):
+        try:
+            notification = Notification.objects.filter(recipient=request.user.pkid)
+            serializer = self.serializer_class(instance=notification, many=True)
+
             return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-NOTIFICATIONS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital notifications. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
 
 notification_viewset = GetCenterNotificationView.as_view()
 
 
-class GetDonorActivityView(generics.GenericAPIView):
-
+class DonorDonationHistoryViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class =  serializers.AppointmentSerializer
+    serializer_class = serializers.AppointmentSerializer
 
     queryset = Appointment.objects.all()
 
-    def get(self,request,id): 
-        user = User.objects.get(pkid=id)       	
-        donor_activity = Appointment.objects.filter(donor=user)
-        serializer = self.serializer_class(instance=donor_activity)
-        if serializer.is_valid:
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-GetDonorActivity_viewset = GetDonorActivityView.as_view()
+    def get(self, request, donorId):
+        try:
+            # appointment = Appointment.objects.get(pkid=pkid)
+            donor_activity = DonationHistory.objects.filter(donor=donorId)
+
+            serializer = self.serializer_class(instance=donor_activity, many=True)
+
+            return Response(
+                data=CustomResponse(
+                    "Donor donation history fetched successfully.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-NOTIFICATIONS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital notifications. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_donation_history_viewset = DonorDonationHistoryViewSet.as_view()
