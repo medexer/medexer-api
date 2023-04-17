@@ -104,4 +104,4 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["id", "pkid," "notificationType", "recipient", "author"]
+        fields = ["id","recipient", "author"]
