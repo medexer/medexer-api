@@ -8,6 +8,7 @@ from apps.donor.models import Appointment, DonationHistory
 
 class InventorySerializer(serializers.ModelSerializer):
     recentActivity = serializers.SerializerMethodField()
+
     class Meta:
         model = Inventory
         fields = [
@@ -27,7 +28,7 @@ class InventorySerializer(serializers.ModelSerializer):
         # print(f"[MESSAGE] :: {activity}")
 
         message = activity.activity if activity else ""
-        
+
         return message
 
 
@@ -41,7 +42,6 @@ class InventoryHistorySerializer(serializers.ModelSerializer):
             "hospital",
             "bloodGroup",
         ]
-
 
 
 class CenterSerializer(serializers.ModelSerializer):
@@ -105,3 +105,33 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ["id", "pkid," "notificationType", "recipient", "author"]
+
+
+class HospitalComplaintSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Complaint
+        fields = [
+            "id",
+            "pkid",
+            "title",
+            "status",
+            "complaintID",
+            "message",
+            "hospital",
+            "hospitalID",
+            "created_at",
+        ]
+
+
+class HospitalComplaintHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComplaintHistory
+        fields = [
+            "id",
+            "pkid",
+            "headline",
+            "message",
+            "complaint",
+            "updateType",
+            "created_at",
+        ]

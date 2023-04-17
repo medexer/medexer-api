@@ -11,6 +11,8 @@ from .models import *
 from django.db.models import Q
 from apps.administrator.models import *
 from apps.donor.models import Appointment, DonationHistory
+from apps.common.validations import hospital_validations
+from apps.common.id_generator import complaint_id_generator
 from apps.common.custom_response import CustomResponse, CurrentTimeStamp
 
 
@@ -182,16 +184,6 @@ class CenterDetailView(generics.GenericAPIView):
             return Response(data=serializer.data, status=status.HTTP_200_OK)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # def put(self, request, id):
-    #     data = request.data
-    #     instance = User.objects.get(pkid=id)
-    #     serializer = self.serializer_class(instance,data=data)
-
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(data=serializer.data, status=status.HTTP_200_OK)
-    #     return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 center_detail_viewset = CenterDetailView.as_view()
 
@@ -339,3 +331,252 @@ class DonorDonationHistoryViewSet(generics.GenericAPIView):
 
 
 donor_donation_history_viewset = DonorDonationHistoryViewSet.as_view()
+
+
+class HospitalComplaintViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.HospitalComplaintSerializer
+    
+    def get(self, request):
+        """
+        Allows for a hospital to fetch thier complaints
+        """
+        try:
+            complaints = Complaint.objects.filter(hospital=request.user.pkid)
+            
+            serializer = self.serializer_class(complaints, many=True)
+                
+            return Response(
+                data=CustomResponse(
+                    "Complaint fetched successfully",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-COMPLAINT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital complaints. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        
+    def post(self, request):
+        """
+        Allows for a hospital to generate a complaint
+        """
+        if not hospital_validations.validate_generate_complaint(request.data):
+            return Response(
+                data=CustomResponse(
+                    hospital_validations.validation_message,
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            hospital = User.objects.get(pkid=request.user.pkid)
+            
+            data = {
+                "status": "OPENED",
+                "hospital": hospital.pkid,
+                "title": request.data['title'],
+                "hospitalID": hospital.hospitalID,
+                "message": request.data['message'],
+                "complaintID": complaint_id_generator(),
+            }
+            
+            serializer = self.serializer_class(data=data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                complaint = Complaint.objects.get(pkid=serializer.data['pkid'])
+                
+                ComplaintHistory.objects.create(
+                    status="STATUS",
+                    complaint=complaint,
+                    headline="You created this complaint".upper(),
+                )
+                ComplaintHistory.objects.create(
+                    status="THREAD",
+                    headline="You replied",
+                    message=request.data['message'],
+                    complaint=complaint,
+                )
+                
+                return Response(
+                    data=CustomResponse(
+                        "Complaint generated successfully",
+                        "SUCCESS",
+                        201,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_201_CREATED,
+                )
+            # print(f"[GENERATE-COMPLAINT-ERROR] :: {serializer.errors}")
+            return Response(
+                data=CustomResponse(
+                    "An error occured while generating complaint.",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[GENERATE-COMPLAINT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while generating complaint. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        
+    def put(self, request, complaintId):
+        """
+        Allows for a hospital to update a complaint status
+        """
+        try:
+            complaint = Complaint.objects.get(pkid=complaintId)
+            
+            data = {
+                "status": request.data['status'],
+            }
+            
+            serializer = self.serializer_class(complaint, data=data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                return Response(
+                    data=CustomResponse(
+                        "Complaint status updated successfully",
+                        "SUCCESS",
+                        201,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_201_CREATED,
+                )
+            # print(f"[UPDATE-COMPLAINT-STATUS-ERROR] :: {serializer.errors}")
+            return Response(
+                data=CustomResponse(
+                    "An error occured while updating complaint status.",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[UPDATE-COMPLAINT-STATUS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating complaint status. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+            
+hospital_complaint_viewset = HospitalComplaintViewSet.as_view()
+
+
+class HospitalComplaintThreadViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.HospitalComplaintHistorySerializer
+    
+    def get(self, request, complaintId):
+        """
+        Allows for a hospital to fetch threads for a complaint
+        """
+        try:
+            complaintsThreads = ComplaintHistory.objects.filter(complaint=complaintId).order_by('-pkid')
+            
+            serializer = self.serializer_class(complaintsThreads, many=True)
+            
+            return Response(
+                data=CustomResponse(
+                    "Complaint thread fetched successfully",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-COMPLAINT-THREADS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching complaint thread. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+    def post(self, request, complaintId):
+        """
+        Allows for a hospital to reply to a complaint thread
+        """
+        try:
+            complaint = Complaint.objects.get(pkid=complaintId)
+            print(f'[DATA] :: {request.data}')
+            data = {
+                "updateType": "THREAD",
+                "headline": "You replied",
+                "complaint": complaint.pkid,
+                "message": request.data['message'],
+            }
+            
+            serializer = self.serializer_class(data=data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    data=CustomResponse(
+                        "Complaint thread generated successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    "An error occured while replying complaint thread.",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[GENERATE-COMPLAINT-THREAD-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while generating complaint thread. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+
+complaint_thread_viewset = HospitalComplaintThreadViewSet.as_view()

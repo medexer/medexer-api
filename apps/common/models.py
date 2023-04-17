@@ -36,3 +36,9 @@ class IdentificationType(models.TextChoices):
     VOTERCARD = "VOTERCARD"
     NATIONALIDENTITYCARD = "NATIONALIDENTITYCARD"
     CACCERTIFICATE = "CACCERTIFICATE"
+        
+class ComplaintStatusType(models.TextChoices):
+    OPENED = "OPENED"
+    CLOSED = "CLOSED"
+    REOPENED = "REOPENED"
+    IN_PROGRESS = "IN_PROGRESS"

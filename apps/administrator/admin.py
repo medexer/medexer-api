@@ -14,4 +14,4 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(ComplaintHistory)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "pkid", "headline"]
+    list_display = ["id", "pkid", "updateType", "headline"]
