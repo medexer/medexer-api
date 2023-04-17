@@ -375,3 +375,51 @@ class GetHospitalNotifictionViewSet(generics.GenericAPIView):
             )
 
 hospital_notification_viewset = GetHospitalNotifictionViewSet.as_view()
+
+
+
+class UpdateHospitalViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.UpdateHospitalSerializer  
+
+    def put(self, request):
+        try:       
+
+            instance = User.objects.get(pkid=request.user.pkid)
+            serializer = self.serializer_class(instance, data=request.data)
+            print(request.data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    data=CustomResponse(
+                        "Hospital updated successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during hospital update",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[HOSPITAL-UPDATE-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during hospital update. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+update_hospital_viewset = UpdateHospitalViewSet.as_view()

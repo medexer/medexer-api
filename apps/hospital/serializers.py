@@ -105,3 +105,9 @@ class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
         fields = ["id","recipient", "author"]
+
+
+class UpdateHospitalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['hospitalName','email','password']

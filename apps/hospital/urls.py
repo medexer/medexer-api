@@ -11,6 +11,7 @@ urlpatterns = [
     path("inventory/<str:bloodGroup>/update-units", views.inventory_item_detail_viewset, name="inventroy-item-update"),
     path("inventory/<str:bloodGroup>/activity/fetch-all", views.inventory_item_history_viewset , name="inventroy-item-activity"),
     path("notifications/", views.hospital_notification_viewset, name="hospital-notifiction"),
+    path("update-hospital/", views.update_hospital_viewset, name="update-hospital"),
     path("appointment/donor/donation-history/<int:donorId>", views.donor_donation_history_viewset, name="donor-donation-history"),
    
 ]
