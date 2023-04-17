@@ -118,7 +118,6 @@ class InventoryItemViewSet(generics.GenericAPIView):
 
 inventory_item_detail_viewset = InventoryItemViewSet.as_view()
 
-
 class HospitalInventoryViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.InventorySerializer
@@ -339,3 +338,40 @@ class DonorDonationHistoryViewSet(generics.GenericAPIView):
 
 
 donor_donation_history_viewset = DonorDonationHistoryViewSet.as_view()
+
+
+class GetHospitalNotifictionViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.NotificationSerializer
+
+    queryset = Notification.objects.all()
+
+    def get(self, request):
+        try:
+            print(request.user)
+            notification = Notification.objects.filter(recipient=request.user)
+
+            serializer = self.serializer_class(instance=notification, many=True)
+
+            return Response(
+                data=CustomResponse(
+                    "hospital notification fetched successfully.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-NOTIFICATIONS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital notifications. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+hospital_notification_viewset = GetHospitalNotifictionViewSet.as_view()
