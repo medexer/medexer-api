@@ -1,22 +1,47 @@
 from .models import *
-from rest_framework import serializers
 from apps.user.models import User
-from apps.registration.models import KnowYourCustomer
-from apps.donor.models import Appointment, DonationActivity
+from rest_framework import serializers
 from apps.administrator.models import *
+from apps.registration.models import KnowYourCustomer
+from apps.donor.models import Appointment, DonationHistory
 
 
 class InventorySerializer(serializers.ModelSerializer):
+    recentActivity = serializers.SerializerMethodField()
     class Meta:
         model = Inventory
         fields = [
             "id",
             "pk",
             "hospitalID",
-            "hospital",  
+            "hospital",
             "bloodUnits",
-            "bloodGroup"          
+            "bloodGroup",
+            "recentActivity",
         ]
+
+    def get_recentActivity(self, obj):
+        message = ""
+        activity = InventoryActivity.objects.filter(bloodGroup=obj.bloodGroup).first()
+
+        # print(f"[MESSAGE] :: {activity}")
+
+        message = activity.activity if activity else ""
+        
+        return message
+
+
+class InventoryHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InventoryActivity
+        fields = [
+            "id",
+            "pkid",
+            "activity",
+            "hospital",
+            "bloodGroup",
+        ]
+
 
 
 class CenterSerializer(serializers.ModelSerializer):
@@ -34,8 +59,8 @@ class CenterSerializer(serializers.ModelSerializer):
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    # donorInfo = serializers.SerializerMethodField()
-    # recentActivity = serializers.SerializerMethodField()
+    donorInfo = serializers.SerializerMethodField()
+    recentActivity = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
@@ -44,36 +69,39 @@ class AppointmentSerializer(serializers.ModelSerializer):
             "pkid",
             "date",
             "donor",
-            # "donorInfo",
+            "donorInfo",
             "hospital",
             "message",
-            # "recentActivity",
+            "recentActivity",
         ]
 
-    # def get_donorInfo(self, obj):
-    #     donor = User.objects.get(pkid=obj.donor.pkid)
-    #     donorKyc = KnowYourCustomer.objects.get(donor=obj.donor.pkid)
+    def get_donorInfo(self, obj):
+        donor = User.objects.get(pkid=obj.donor.pkid)
+        donorKyc = KnowYourCustomer.objects.get(donor=obj.donor.pkid)
 
-    #     data = {
-    #         "id": donor.id,
-    #         "pkid": donor.pkid,
-    #         "fullName": donor.fullName,
-    #         "bloodGroup": donorKyc.bloodGroup,
-    #     }
+        data = {
+            "id": donor.id,
+            "pkid": donor.pkid,
+            "fullName": donor.fullName,
+            "bloodGroup": donorKyc.bloodGroup,
+        }
 
-    #     return data
+        return data
 
-    # def get_recentActivity(self, obj):
-    #     message = ""
-    #     activity = DonationActivity.objects.filter(appointment=obj.pkid).first()
+    def get_recentActivity(self, obj):
+        message = ""
+        try:
+            activity = DonationHistory.objects.filter(donor=obj.donor.pkid).first()
 
-    #     if activity:
-    #         message = activity.message
+            # print(f"[MESSAGE] :: {activity}")
 
-    #     return message
+            message = activity.message if activity else ""
+            return message
+        except DonationHistory.DoesNotExist:
+            return message
 
 
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["message", "notificationType", "id", "userID", "author", "hospitalID"]
+        fields = ["id", "pkid," "notificationType", "recipient", "author"]

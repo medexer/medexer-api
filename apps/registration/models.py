@@ -14,7 +14,7 @@ class KnowYourCustomer(TimeStampedUUIDModel):
     documentUploadCover =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
     documentUploadRear =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
     donorID = models.CharField(max_length=255, blank=True, null=True)
-    donor = models.ForeignKey(User, related_name="kyc_donor", blank=True, null=True, on_delete=models.DO_NOTHING)
+    donor = models.ForeignKey(User, related_name="kyc_donor", blank=True, null=True, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.donor} KYC"
@@ -29,7 +29,7 @@ class KnowYourBusiness(TimeStampedUUIDModel):
     description = models.TextField(blank=True, null=True)
     identificationType = models.CharField(max_length=255, choices=IdentificationType.choices, default="CACCERTIFICATE", blank=True, null=True)
     hospitalID = models.CharField(max_length=255, blank=True, null=True)
-    hospital = models.ForeignKey(User, related_name="kyb_hospital", blank=True, null=True, on_delete=models.DO_NOTHING)
+    hospital = models.ForeignKey(User, related_name="kyb_hospital", blank=True, null=True, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.hospital} KYB"

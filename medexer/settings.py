@@ -79,11 +79,13 @@ ROOT_URLCONF = "medexer.urls"
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
+    "https://medexer-hospital.vercel.app"
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
+    "https://medexer-hospital.vercel.app"
     # "http://nama-api-production.up.railway.app"
     # "https://nama-api-production.up.railway.app"
 ]
@@ -93,6 +95,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",
     "http://localhost:3000",
+    "https://medexer-hospital.vercel.app"
 ]
 
 TEMPLATES = [

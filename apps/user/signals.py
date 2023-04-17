@@ -6,7 +6,7 @@ from apps.hospital.models import *
 
 @receiver(post_save, sender=User)
 def create_(sender, instance, created, **kwargs):  
-    items = ["OPositive","ONegative","ABPositiv","ABNegativ","APositive","ANegative","BPositive","BNegative" ]  
+    items = ["O+","O-","AB+","AB-","A+","A-","B+","B-" ]  
     
     if created:
         if instance.is_hospital:

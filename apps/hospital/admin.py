@@ -4,7 +4,7 @@ from .models import Inventory, InventoryActivity
 
 @admin.register(Inventory)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "pkid","hospital"]
+    list_display = ["id", "pkid", "bloodGroup", "bloodUnits", "hospital"]
 
 
 @admin.register(InventoryActivity)

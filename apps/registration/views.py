@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from apps.user.models import User
 from apps.common.custom_response import CustomResponse
 from .models import KnowYourBusiness, KnowYourCustomer
+from apps.user.serializers import HospitalAuthSerializer
 from apps.common.validations import registration_validations
 from .serializers import DonorKYCSerializer, HospitalKYBSerializer
 
@@ -139,7 +140,7 @@ class HospitalKYBViewSet(APIView):
                 )
             data = {
                 "cacRegistrationID": request.data["cacRegistrationID"],
-                "websiteUrl": request.data["websiteUrl"],
+                "websiteUrl": request.data["websiteUrl"] if request.data["websiteUrl"] else '',
                 "logo": request.FILES["logo"],
                 "address": request.data["address"],
                 "description": request.data["description"],
@@ -154,13 +155,17 @@ class HospitalKYBViewSet(APIView):
                 serializer.save()
                 hospital.is_kyc_updated = True
                 hospital.save()
+                hospital_serializer = HospitalAuthSerializer(hospital)
 
                 return Response(
                     data=CustomResponse(
                         "Hospital KYB successfully captured",
                         "SUCCESS",
                         201,
-                        serializer.data,
+                        {
+                            "data" : serializer.data,
+                            "hospital" : hospital_serializer.data,
+                        },
                     ),
                     status=status.HTTP_201_CREATED,
                 )
