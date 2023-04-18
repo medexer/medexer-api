@@ -8,6 +8,7 @@ from apps.donor.models import Appointment, DonationHistory
 
 class InventorySerializer(serializers.ModelSerializer):
     recentActivity = serializers.SerializerMethodField()
+
     class Meta:
         model = Inventory
         fields = [
@@ -27,7 +28,7 @@ class InventorySerializer(serializers.ModelSerializer):
         # print(f"[MESSAGE] :: {activity}")
 
         message = activity.activity if activity else ""
-        
+
         return message
 
 
@@ -41,7 +42,6 @@ class InventoryHistorySerializer(serializers.ModelSerializer):
             "hospital",
             "bloodGroup",
         ]
-
 
 
 class CenterSerializer(serializers.ModelSerializer):
@@ -104,11 +104,22 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["id","recipient", "author"]
+        fields = [
+            "id",
+            "pkid",
+            "notificationType",
+            "recipient",
+            "author",
+            "title",
+            "message",
+            "is_read",
+            "created_at",
+        ]
 
 
-class UpdateHospitalSerializer(serializers.ModelSerializer):
+class HospitalComplaintSerializer(serializers.ModelSerializer):
     class Meta:
+<<<<<<< HEAD
         model = User
         fields = ['hospitalName','email','password']
 
@@ -117,3 +128,31 @@ class UpdateHospitalSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         models = User
 #         fields = ['hospitalName','email','location',' hospitalID ','id','pkid']
+=======
+        model = Complaint
+        fields = [
+            "id",
+            "pkid",
+            "title",
+            "status",
+            "complaintID",
+            # "message",
+            "hospital",
+            "hospitalID",
+            "created_at",
+        ]
+
+
+class HospitalComplaintHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ComplaintHistory
+        fields = [
+            "id",
+            "pkid",
+            "headline",
+            "message",
+            "complaint",
+            "updateType",
+            "created_at",
+        ]
+>>>>>>> origin/workingbranch

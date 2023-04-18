@@ -1,21 +1,16 @@
 from django.shortcuts import render
-
 from django.db.models import Q
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework.permissions import IsAuthenticated
 from .models import User
 from apps.common.validations import auth_validations
 from apps.common.custom_response import CustomResponse
-from .serializers import DonorAuthSerializer, HospitalAuthSerializer
 from .tasks import send_forgotpassword_mail, send_hospital_welcome_mail
-from apps.common.id_generator import (
-    donor_id_generator,
-    otp_id_generator,
-    hospital_id_generator,
-)
+from apps.common.id_generator import donor_id_generator, otp_id_generator, hospital_id_generator
+from .serializers import DonorAuthSerializer, HospitalAuthSerializer, HospitalProfileUpdateSerializer
 
 
 class DonorSignUpViewSet(APIView):
@@ -427,6 +422,72 @@ class HospitalSignInViewSet(APIView):
 
 
 hospital_signin_viewset = HospitalSignInViewSet.as_view()
+
+
+
+class UpdateHospitalViewSet(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = HospitalProfileUpdateSerializer
+
+    def put(self, request):
+        try:
+            instance = User.objects.get(pkid=request.user.pkid)
+
+            if not instance.check_password(request.data['currentPassword']):
+                return Response(
+                    data=CustomResponse(
+                        f"Unauthorized",
+                        "ERROR",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+                
+            serializer = self.serializer_class(instance, data=request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                
+                instance.set_password(request.data['newPassword'])
+                instance.save()
+
+                _serializer = HospitalAuthSerializer(instance)
+
+                return Response(
+                    data=CustomResponse(
+                        "Hospital profile updated successfully",
+                        "SUCCESS",
+                        200,
+                        _serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            print(f'[ERROR] :: {serializer.errors}')
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during hospital update",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception as e:
+            print(f"[HOSPITAL-UPDATE-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during hospital update. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+update_hospital_viewset = UpdateHospitalViewSet.as_view()
 
 
 def geeks_view(request):

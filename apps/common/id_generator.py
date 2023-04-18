@@ -64,3 +64,16 @@ def kyb_document_id_generator():
         _id += random.choice(characters)
 
     return _id
+
+
+def complaint_id_generator():
+    characters = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+    length = 8
+
+    _id = "CPT-"
+
+    for _ in range(length):
+        _id += random.choice(characters)
+
+    return _id

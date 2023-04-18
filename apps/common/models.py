@@ -12,8 +12,12 @@ class TimeStampedUUIDModel(models.Model):
         abstract = True
         
 class NotificationType(models.TextChoices):
-    DONOR = "DONOR"
+    APPOINTMENT = "APPOINTMENT"
     HOSPITAL = "HOSPITAL"
+    DONATION = "DONATION"
+    APP_UPDATE = "APP_UPDATE"
+    ADMIN = "ADMIN"
+    COMPLAINT = "COMPLAINT"
         
 class BloodGroup(models.TextChoices):
     OPositive = "O+"
@@ -36,3 +40,9 @@ class IdentificationType(models.TextChoices):
     VOTERCARD = "VOTERCARD"
     NATIONALIDENTITYCARD = "NATIONALIDENTITYCARD"
     CACCERTIFICATE = "CACCERTIFICATE"
+        
+class ComplaintStatusType(models.TextChoices):
+    OPENED = "OPENED"
+    CLOSED = "CLOSED"
+    REOPENED = "REOPENED"
+    IN_PROGRESS = "IN_PROGRESS"

@@ -10,4 +10,5 @@ urlpatterns = [
     path("auth/donor/reset-password", views.donor_resetpassword_viewset, name="donor-reset-password"),
     path("auth/hospital/signup", views.hospital_signup_viewset, name="hospital-signup"),
     path("auth/hospital/signin", views.hospital_signin_viewset, name="hospital-signin"),
+    path("auth/hospital/update-profile", views.update_hospital_viewset, name="update-hospital-profile"),
 ]
