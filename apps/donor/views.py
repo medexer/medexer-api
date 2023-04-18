@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from . import serializers
 from .models import *
+from apps.user.models import User
 from rest_framework import generics,status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -49,7 +50,7 @@ class DonorCreateListView(generics.GenericAPIView):
 donor_create_list_viewset = DonorCreateListView.as_view()
 
 
-class DonorDetailView(generics.GenericAPIView):
+class DonorAppointmentViewSet(generics.GenericAPIView):
     
 	serializer_class = serializers.DonorSerializer
 	queryset = Appointment.objects.all()
@@ -78,4 +79,82 @@ class DonorDetailView(generics.GenericAPIView):
 		return Response(data={'message':'success'}, status=status.HTTP_200_OK)
 
 
-donor_detail_viewset = DonorDetailView.as_view() 	
+donor_appointment_viewset = DonorAppointmentViewSet.as_view() 	
+
+
+class DonationCentersViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.DonationCenterSerializer
+    
+    def get(self, request):
+        """
+			Allows for a donor to fetch donation centers
+        """
+        try:
+            centers = User.objects.filter(is_hospital=True)
+            
+            serializer = self.serializer_class(centers, many=True)
+            
+            return Response(
+                data=CustomResponse(
+                    "Donation centers fetched successfully",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+            
+        except Exception as e:
+            print(f"[FETCH-DONATION-CENTERS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching donation centers ",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+donation_centers_viewset = DonationCentersViewSet.as_view()
+
+
+
+class DonationCenterDetailViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.DonationCenterSerializer
+
+    def get(self, request, centerId):
+        """
+			Allows for a donor to fetch a donation center
+        """
+        try:
+            center = User.objects.get(pkid=centerId)
+            
+            serializer = self.serializer_class(center)
+            
+            return Response(
+                data=CustomResponse(
+                    "Donation center fetched successfully",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+            
+        except Exception as e:
+            print(f"[FETCH-DONATION-CENTER-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching donation center.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donation_center_detail_viewset = DonationCenterDetailViewSet.as_view()

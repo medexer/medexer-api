@@ -2,8 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("centers/",views.center_list_viewset, name="centers"),
-    path("center/<str:id>", views.center_detail_viewset, name="center-detail"),
     path("appointments/", views.hospital_appointment_viewset , name="hospital-appointments"),
     path("appointment/update/<int:pkid>", views.hospital_appointment_viewset, name="update-appointment-hospital"),
     path("inventory/fetch-all", views.hospital_inventory_viewset, name="fetch-all-inventory"),
