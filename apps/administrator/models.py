@@ -12,7 +12,7 @@ class Notification(TimeStampedUUIDModel):
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.notificationType} - {self.message[0:10]}"
+        return f"{self.notificationType} - {self.message}"
 
     
     

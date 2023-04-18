@@ -23,5 +23,5 @@ class DonationHistory(TimeStampedUUIDModel):
     
     
     def __str__(self):
-        return f"{self.donor} - {self.message[:10]}"
+        return f"{self.donor} - {self.message}"
     

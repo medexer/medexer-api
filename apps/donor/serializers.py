@@ -2,15 +2,34 @@ from .models import *
 from apps.user.models import User
 from rest_framework import serializers
 
-class DonorSerializer(serializers.ModelSerializer):	
-	class Meta:
-		model = Appointment
-		fields = ['pkid','id','date','donor','message','hospital','IsDonated:']
-	
 
-	def hospitals(self):
-		hospital = User.objects.filter(is_hospital=True)
-		return hospital
+class DonorAppointmentSerializer(serializers.ModelSerializer):
+    hospitalInfo = serializers.SerializerMethodField()
+    class Meta:
+        model = Appointment
+        fields = [
+            "pkid",
+            "id",
+            "date",
+            "donor",
+            "message",
+            "hospital",
+            "isDonated",
+            "hospitalInfo",
+            "created_at",
+        ]
+        
+    def get_hospitalInfo(self, obj):
+        hospital = User.objects.get(pkid=obj.hospital.pkid)
+        
+        data = {
+            "pkid": hospital.pkid,
+            "hospitalName": hospital.hospitalName,
+            "email": hospital.email,
+        }
+        
+        return data
+
 
 class DonationCenterSerializer(serializers.ModelSerializer):
     class Meta:

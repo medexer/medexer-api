@@ -8,18 +8,20 @@ from apps.administrator.models import *
 def create_notification(sender, instance, created, **kwargs):    
     if created:
         notification = Notification.objects.create(
-            notificationType='DONOR',
+            title="Appointment",
+            notificationType='APPOINTMENT',
             recipient=instance.donor,
             author=instance.hospital,
-            message=instance.message + " " + str(instance.date),
+            message=f'You have scheduled a new appointment with {instance.hospital.hospitalName} for {instance.date}',
         )
         notification.save()
     
         hospitalNotification = Notification.objects.create(
-            notificationType='HOSPITAL',
+            title="Appointment",
             author=instance.donor,
             recipient=instance.hospital,
-            message=instance.message + " " + str(instance.date),
+            notificationType='APPOINTMENT',
+            message=f'You have a new appointment scheduled with {instance.donor.fullName} on the {instance.date}',
         )
         hospitalNotification.save()
   
