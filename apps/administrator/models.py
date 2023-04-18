@@ -4,10 +4,12 @@ from apps.common.models import TimeStampedUUIDModel, NotificationType, Complaint
 
 
 class Notification(TimeStampedUUIDModel):
-    message = models.TextField(blank=True, null=True)
     notificationType = models.CharField(max_length=255, choices=NotificationType.choices, blank=True, null=True)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    message = models.TextField(blank=True, null=True)
     author = models.ForeignKey(User, related_name="notification_author", blank=True, null=True, on_delete=models.CASCADE)
     recipient = models.ForeignKey(User, related_name="notification_recipient", blank=True, null=True, on_delete=models.CASCADE)
+    is_read = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.notificationType} - {self.message[0:10]}"
@@ -18,7 +20,7 @@ class Complaint(TimeStampedUUIDModel):
     title = models.CharField(max_length=255, blank=True, null=True)
     status = models.CharField(max_length=255, choices=ComplaintStatusType.choices, blank=True, null=True)
     complaintID = models.CharField(max_length=255, blank=True, null=True, unique=True)
-    message = models.TextField(blank=True, null=True)
+    # message = models.TextField(blank=True, null=True)
     hospitalID = models.CharField(max_length=255, blank=True, null=True)
     hospital = models.ForeignKey(User, related_name="complaint_hospital", blank=True, null=True, on_delete=models.DO_NOTHING)
     

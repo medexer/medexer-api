@@ -5,14 +5,17 @@ from rest_framework import generics,status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
+from apps.common.custom_response import CustomResponse
 
 class DonorCreateListView(generics.GenericAPIView):
-	'''set serializer class and query set'''
 	queryset = Appointment.objects.all()
 	permission_classes = [IsAuthenticated]
 	serializer_class = serializers.DonorSerializer
 
 	def get(self,request):
+		"""
+		Allows for a donor to fetch his/her appointments
+		"""
 		try:
 			appointment = Appointment.objects.filter(donor=request.user.pkid)
   
@@ -30,7 +33,6 @@ class DonorCreateListView(generics.GenericAPIView):
 				status=status.HTTP_400_BAD_REQUEST,
 			)
 
-		
 
 	def post(self,request):
 		data = request.data

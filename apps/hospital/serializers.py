@@ -104,7 +104,17 @@ class AppointmentSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        fields = ["id", "pkid," "notificationType", "recipient", "author"]
+        fields = [
+            "id",
+            "pkid",
+            "notificationType",
+            "recipient",
+            "author",
+            "title",
+            "message",
+            "is_read",
+            "created_at",
+        ]
 
 
 class HospitalComplaintSerializer(serializers.ModelSerializer):
@@ -116,7 +126,7 @@ class HospitalComplaintSerializer(serializers.ModelSerializer):
             "title",
             "status",
             "complaintID",
-            "message",
+            # "message",
             "hospital",
             "hospitalID",
             "created_at",

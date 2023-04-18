@@ -18,7 +18,7 @@ class DonorAuthSerializer(serializers.ModelSerializer):
             "is_kyc_updated",
         ]
         extra_kwargs = {"password": {"write_only": True}}
-        
+
     def create(self, validated_data):
         user = User.objects.create(
             fullName=validated_data["fullName"],
@@ -26,7 +26,7 @@ class DonorAuthSerializer(serializers.ModelSerializer):
             is_donor=validated_data["is_donor"],
             donorID=validated_data["donorID"],
         )
-        
+
         user.set_password(validated_data["password"])
         user.save()
 
@@ -50,8 +50,7 @@ class HospitalAuthSerializer(serializers.ModelSerializer):
             "is_kyc_updated",
         ]
         extra_kwargs = {"password": {"write_only": True}}
-    
-        
+
     def create(self, validated_data):
         user = User.objects.create(
             hospitalName=validated_data["hospitalName"],
@@ -60,8 +59,18 @@ class HospitalAuthSerializer(serializers.ModelSerializer):
             is_hospital=validated_data["is_hospital"],
             hospitalID=validated_data["hospitalID"],
         )
-        
+
         user.set_password(validated_data["password"])
         user.save()
 
         return user
+
+
+class HospitalProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "hospitalName",
+            "email",
+            # "password",
+        ]
