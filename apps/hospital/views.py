@@ -162,7 +162,15 @@ class CenterListView(generics.GenericAPIView):
     def get(self, request):
         centers = User.objects.filter(is_hospital=True)
         serializer = self.serializer_class(instance=centers, many=True)
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        return Response(
+                data=CustomResponse(
+                    "hospital fetched successfully.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
 
 
 center_list_viewset = CenterListView.as_view()
@@ -423,3 +431,5 @@ class UpdateHospitalViewSet(generics.GenericAPIView):
 
 
 update_hospital_viewset = UpdateHospitalViewSet.as_view()
+
+

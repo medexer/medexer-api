@@ -111,3 +111,9 @@ class UpdateHospitalSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['hospitalName','email','password']
+
+
+# class UserSerializer(serializer.ModelSerializer):
+#     class Meta:
+#         models = User
+#         fields = ['hospitalName','email','location',' hospitalID ','id','pkid']
