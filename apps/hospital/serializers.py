@@ -82,6 +82,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         data = {
             "id": donor.id,
             "pkid": donor.pkid,
+            "donorId": donor.donorID,
             "fullName": donor.fullName,
             "bloodGroup": donorKyc.bloodGroup,
         }

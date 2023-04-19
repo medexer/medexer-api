@@ -5,23 +5,23 @@ from apps.administrator.models import *
 
 
 @receiver(post_save, sender=Appointment)
-def create_notification(sender, instance, created, **kwargs):    
+def create_appointment_notification(sender, instance, created, **kwargs):    
     if created:
         notification = Notification.objects.create(
-            title="Appointment",
+            title="New appointment request.",
             notificationType='APPOINTMENT',
             recipient=instance.donor,
             author=instance.hospital,
-            message=f'You have scheduled a new appointment with {instance.hospital.hospitalName} for {instance.date}',
+            message=f'You have requested for a new appointment with {instance.hospital.hospitalName}. A date will be scheduled by the hospital and you will get a response.',
         )
         notification.save()
     
         hospitalNotification = Notification.objects.create(
-            title="Appointment",
+            title=f"New appointment request.",
             author=instance.donor,
             recipient=instance.hospital,
             notificationType='APPOINTMENT',
-            message=f'You have a new appointment scheduled with {instance.donor.fullName} on the {instance.date}',
+            message=f'You have a new appointment request from {instance.donor.fullName}. Please schedule a date to alert them.',
         )
         hospitalNotification.save()
   

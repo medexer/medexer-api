@@ -156,7 +156,6 @@ class HospitalInventoryViewSet(generics.GenericAPIView):
 hospital_inventory_viewset = HospitalInventoryViewSet.as_view()
 
 
-
 class HospitalAppointmentViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.AppointmentSerializer
@@ -191,18 +190,21 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
 
     def put(self, request, pkid):
         try:
-            data = {"date": request.data["date"]}
+            data = {
+                "date": request.data["date"],
+            }
 
             instance = Appointment.objects.get(pkid=pkid)
             serializer = self.serializer_class(instance, data=data)
-            print(data)
+           
             if serializer.is_valid():
                 serializer.save()
 
                 Notification.objects.create(
-                    notificationType="DONOR",
+                    notificationType="APPOINTMENT",
                     author=request.user,
                     recipient=instance.donor,
+                    title=f"Appointment Schedule from {request.user.hospitalName}",
                     message=request.data["message"],
                 )
 
@@ -541,20 +543,18 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    
+
     def put(self, request, notificationId):
         try:
             notification = Notification.objects.get(pkid=notificationId)
 
-            data = {
-                "is_read": True
-            }
+            data = {"is_read": True}
 
             serializer = self.serializer_class(notification, data=data)
 
             if serializer.is_valid():
                 serializer.save()
-                
+
                 return Response(
                     data=CustomResponse(
                         "Hospital notification fetched successfully.",
@@ -587,4 +587,3 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
 
 
 hospital_notifications_viewset = HospitalNotificationsViewSet.as_view()
-

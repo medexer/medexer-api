@@ -12,6 +12,9 @@ class Appointment(TimeStampedUUIDModel):
     
     def __str__(self):
         return f"{self.donor} - {self.hospital} {self.date}"
+    
+    class Meta:
+        ordering = ('-pkid',)
 
 class DonationHistory(TimeStampedUUIDModel):
     donor = models.ForeignKey(User, related_name="donation_history_donor", blank=True, null=True, on_delete=models.DO_NOTHING)
@@ -20,7 +23,6 @@ class DonationHistory(TimeStampedUUIDModel):
     
     class Meta:
         verbose_name_plural = ('Donation History')
-    
     
     def __str__(self):
         return f"{self.donor} - {self.message}"

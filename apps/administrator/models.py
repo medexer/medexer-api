@@ -13,7 +13,9 @@ class Notification(TimeStampedUUIDModel):
 
     def __str__(self):
         return f"{self.notificationType} - {self.message}"
-
+    
+    class Meta:
+        ordering = ('-pkid',)
     
     
 class Complaint(TimeStampedUUIDModel):
@@ -25,7 +27,7 @@ class Complaint(TimeStampedUUIDModel):
     hospital = models.ForeignKey(User, related_name="complaint_hospital", blank=True, null=True, on_delete=models.DO_NOTHING)
     
     class Meta:
-        ordering = ['pkid',]
+        ordering = ('-pkid',)
     
     def __str__(self):
         return f"{self.hospitalID} - {self.title}"
