@@ -48,6 +48,7 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
             data = {
                 # "date": request.data["date"],
                 "donor": request.user.pkid,
+                "message": request.data['message'],
                 "hospital": request.data['hospital'],
             }
 

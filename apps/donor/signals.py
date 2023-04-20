@@ -17,11 +17,11 @@ def create_appointment_notification(sender, instance, created, **kwargs):
         notification.save()
     
         hospitalNotification = Notification.objects.create(
-            title=f"New appointment request.",
+            title=f"New appointment request from {instance.donor.fullName}.",
             author=instance.donor,
             recipient=instance.hospital,
             notificationType='APPOINTMENT',
-            message=f'You have a new appointment request from {instance.donor.fullName}. Please schedule a date to alert them.',
+            message=f'{instance.message}',
         )
         hospitalNotification.save()
   
