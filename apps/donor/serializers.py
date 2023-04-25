@@ -25,6 +25,7 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
         data = {
             "pkid": hospital.pkid,
             "hospitalName": hospital.hospitalName,
+            "location": hospital.location,
             "email": hospital.email,
         }
         
