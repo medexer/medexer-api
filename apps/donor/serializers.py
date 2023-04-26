@@ -1,7 +1,7 @@
 from .models import *
 from apps.user.models import User
 from rest_framework import serializers
-
+from apps.administrator.models import Notification
 
 class DonorAppointmentSerializer(serializers.ModelSerializer):
     hospitalInfo = serializers.SerializerMethodField()
@@ -43,4 +43,20 @@ class DonationCenterSerializer(serializers.ModelSerializer):
             "hospitalID",
             "location",
             "is_active",
+        ]
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = [
+            "id",
+            "pkid",
+            "notificationType",
+            "recipient",
+            "author",
+            "title",
+            "message",
+            "is_read",
+            "created_at",
         ]

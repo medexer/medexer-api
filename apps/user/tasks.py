@@ -8,10 +8,6 @@ from django.core.mail import EmailMultiAlternatives
 
 load_dotenv()
 
-# @shared_task(bind=True)
-# def send_forgotpassword_mail(self, target_mail, token):
-
-
 def send_hospital_welcome_mail(target_mail, hospitalName, hospitalID):
     try:
         subject = f"Medexer"
@@ -38,15 +34,6 @@ def send_hospital_welcome_mail(target_mail, hospitalName, hospitalID):
 
 def send_forgotpassword_mail(target_mail, token):
     try:
-        # mail_subject = "Welcome on Board!"
-        # send_mail(
-        #     subject = mail_subject,
-        #     message=message,
-        #     from_email=os.getenv("EMAIL_HOST_USER"),
-        #     recipient_list=[target_mail],
-        #     fail_silently=False,
-        #     )
-
         subject = f"Medexer: Forgot Password OTP"
         to = [target_mail]
         from_email = os.getenv("EMAIL_HOST_USER")

@@ -7,4 +7,7 @@ urlpatterns = [
     path("appointments/<int:pkid>", views.donor_appointment_viewset, name="donor-appointment"),
     path("donation-centers", views.donation_centers_viewset, name="donation-centers"),
     path("donation-centers/<int:centerId>", views.donation_center_detail_viewset, name="donation-center"),
+    path("contact-us", views.donor_contact_us_viewset, name="contact-us"),
+    path("notifications", views.donor_notifications_viewset, name="donor-notification"),
+    path("notifications/<int:notificationId>/update", views.donor_notifications_viewset, name="donor-notification"),
 ]

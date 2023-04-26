@@ -12,12 +12,13 @@ class DonorAuthSerializer(serializers.ModelSerializer):
             "email",
             "donorID",
             "is_active",
+            "avatar",
             "is_donor",
             "otp",
-            "password",
+            # "password",
             "is_kyc_updated",
         ]
-        extra_kwargs = {"password": {"write_only": True}}
+        # extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
         user = User.objects.create(

@@ -53,6 +53,19 @@ def kyc_document_id_generator():
     return _id
 
 
+def avatar_id_generator():
+    characters = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+    length = 10
+
+    _id = "MED-DNR-"
+
+    for _ in range(length):
+        _id += random.choice(characters)
+
+    return _id
+
+
 def kyb_document_id_generator():
     characters = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 

@@ -37,6 +37,7 @@ class UserAdmin(BaseUserAdmin):
             _("Personal Information"),
             {
                 "fields": (
+                    "avatar",
                     "fullName",
                     "hospitalName",
                     "donorID",

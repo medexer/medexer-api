@@ -8,6 +8,7 @@ urlpatterns = [
     path("auth/donor/signin", views.donor_signin_viewset, name="donor-signin"),
     path("auth/donor/forgot-password", views.donor_forgotpassword_viewset, name="donor-forgot-password"),
     path("auth/donor/reset-password", views.donor_resetpassword_viewset, name="donor-reset-password"),
+    path("auth/donor/update-profile", views.donor_update_profile_viewset, name="donor-update-profile"),
     path("auth/hospital/signup", views.hospital_signup_viewset, name="hospital-signup"),
     path("auth/hospital/signin", views.hospital_signin_viewset, name="hospital-signin"),
     path("auth/hospital/update-profile", views.update_hospital_viewset, name="update-hospital-profile"),
