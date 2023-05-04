@@ -73,6 +73,7 @@ class DonorSignUpViewSet(APIView):
                     ),
                     status=status.HTTP_201_CREATED,
                 )
+            print(f"[DONOR-SIGNUP-ERROR] :: {serializer.errors}")
             return Response(
                 data=CustomResponse(
                     "An error occured during donor signup.",
@@ -306,7 +307,12 @@ class HospitalSignUpViewSet(APIView):
                 "is_hospital": True,
                 "hospitalID": hospitalID,
                 "email": request.data["email"],
-                "location": request.data["location"],
+                # "location": request.data["location"],
+                "address": request.data["address"],
+                "state": request.data["state"],
+                # "city": request.data["city"],
+                "lga": request.data["lga"],
+                "postalCode": request.data["postalCode"],
                 "password": request.data["password"],
                 "hospitalName": request.data["hospitalName"],
             }

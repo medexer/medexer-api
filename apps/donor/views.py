@@ -1,7 +1,10 @@
-from django.shortcuts import render
+import os, googlemaps
 from . import serializers
 from .models import *
+from dotenv import load_dotenv
+from django.db.models import Q
 from apps.user.models import User
+from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -10,6 +13,8 @@ from rest_framework.permissions import IsAuthenticated
 from apps.common.custom_response import CustomResponse
 from .tasks import send_contact_us_mail
 
+
+load_dotenv()
 
 class DonorAppointmentViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
@@ -131,6 +136,112 @@ class DonationCentersViewSet(generics.GenericAPIView):
 donation_centers_viewset = DonationCentersViewSet.as_view()
 
 
+class DonationCentersLocationDataViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Allows for a donor to fetch the location data for all donation centers
+        """
+        try:
+            geocodeData = []
+
+            gmaps = googlemaps.Client(key=os.getenv("GOOGLEMAP_APIKEY"))
+
+            donation_centers = User.objects.filter(is_hospital=True)
+            # _geocode_result = gmaps.geocode("VV28+HM9, 930103, Jos, Plateau")
+
+            for center in donation_centers:
+                _center_geocode_result = gmaps.geocode(
+                    f"{center.address}, {center.postalCode}, {center.lga}, {center.state}"
+                )
+                # print(f"{center.address}, {center.postalCode}, {center.lga}, {center.state}")
+                # print(_center_geocode_result)
+                for result in _center_geocode_result:
+                    print(result)
+                    geocodeData.append(
+                        {
+                            "centerName": center.hospitalName,
+                            "email": f"{center.email}",
+                            "address": f"{center.address}, {center.postalCode}, {center.lga}, {center.state} state.",
+                            "location": result["geometry"]["location"],
+                        }
+                    )
+                    # print(geocodeData)
+
+            print(f"[GEO] :: {geocodeData}")
+            return Response(
+                data=CustomResponse(
+                    "Donation center fetched successfully",
+                    "SUCCESS",
+                    200,
+                    geocodeData,
+                ),
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            print(f"[FETCH-DONATION-CENTER-GEO-LOCATION-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching donation center geo-location.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donation_centers_location_data_viewset = DonationCentersLocationDataViewSet.as_view()
+
+
+class SearchDonationCentersViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.DonationCenterSerializer
+    
+    def get(self, request):
+        """
+        Allows for a donor to fetch the location data for all donation centers
+        """
+        try:
+            query = self.request.GET.get('query', None)
+            centers = User.objects.filter(
+                Q(hospitalName__icontains=query)
+                | Q(address__icontains=query)
+                | Q(lga__icontains=query)
+                | Q(state__icontains=query)
+                | Q(postalCode__icontains=query)
+            )
+
+            serializer = self.serializer_class(centers, many=True)
+
+            return Response(
+                data=CustomResponse(
+                    "Search successful",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            print(f"[SEARCH-DONATION-CENTERS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while searching donation centers.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+search_donation_centers_viewset = SearchDonationCentersViewSet.as_view()
+
+
 class DonationCenterDetailViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.DonationCenterSerializer
@@ -198,7 +309,7 @@ class DonorContactUsViewSet(generics.GenericAPIView):
                     ),
                     status=status.HTTP_200_OK,
                 )
-                
+
             print(f"[SEND-CONTACT-US-MAIL-ERROR]")
             return Response(
                 data=CustomResponse(
@@ -224,8 +335,6 @@ class DonorContactUsViewSet(generics.GenericAPIView):
 
 
 donor_contact_us_viewset = DonorContactUsViewSet.as_view()
-
-
 
 
 class DonorNotificationsViewSet(generics.GenericAPIView):

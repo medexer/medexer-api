@@ -42,6 +42,10 @@ class UserAdmin(BaseUserAdmin):
                     "hospitalName",
                     "donorID",
                     "hospitalID",
+                    "address",
+                    "lga",
+                    "state",
+                    "postalCode",
                     "otp",
                 )
             },
