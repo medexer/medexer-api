@@ -144,5 +144,6 @@ class HospitalComplaintHistorySerializer(serializers.ModelSerializer):
             "message",
             "complaint",
             "updateType",
+            "author",
             "created_at",
         ]

@@ -24,6 +24,7 @@ urlpatterns = (
     [
         path("admin/", admin.site.urls),
         path('medexer/api/v1/', include('apps.user.urls')),
+        path('medexer/api/v1/administrator/', include('apps.administrator.urls')),
         path('medexer/api/v1/registration/', include('apps.registration.urls')),
         path('medexer/api/v1/donor/', include('apps.donor.urls')),
         path('medexer/api/v1/hospital/', include('apps.hospital.urls')),
