@@ -587,10 +587,4 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
             )
 
 
-<<<<<<< HEAD
-update_hospital_viewset = UpdateHospitalViewSet.as_view()
-
-
-=======
 hospital_notifications_viewset = HospitalNotificationsViewSet.as_view()
->>>>>>> origin/main
