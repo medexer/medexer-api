@@ -1,5 +1,10 @@
 from django.contrib import admin
-from .models import Notification, Complaint, ComplaintHistory
+from .models import Notification, Complaint, ComplaintHistory, Integration
+
+
+@admin.register(Integration)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ["id", "pkid", "organization", "state", 'cac_id', 'is_approved']
 
 
 @admin.register(Notification)

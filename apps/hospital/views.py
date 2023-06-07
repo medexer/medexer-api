@@ -156,46 +156,6 @@ class HospitalInventoryViewSet(generics.GenericAPIView):
 hospital_inventory_viewset = HospitalInventoryViewSet.as_view()
 
 
-class CenterListView(generics.GenericAPIView):
-
-    serializer_class = serializers.CenterSerializer
-    queryset = User.objects.filter(is_hospital=True)
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        centers = User.objects.filter(is_hospital=True)
-        serializer = self.serializer_class(instance=centers, many=True)
-        return Response(
-                data=CustomResponse(
-                    "hospital fetched successfully.",
-                    "SUCCESS",
-                    200,
-                    serializer.data,
-                ),
-                status=status.HTTP_200_OK,
-            )
-
-
-center_list_viewset = CenterListView.as_view()
-
-
-class CenterDetailView(generics.GenericAPIView):
-
-    serializer_class = serializers.CenterSerializer
-    queryset = User.objects.filter(is_hospital=True)
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request, id):
-        center = get_object_or_404(User, pk=id)
-        serializer = self.serializer_class(instance=center)
-        if serializer.is_valid:
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
-        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-center_detail_viewset = CenterDetailView.as_view()
-
-
 class HospitalAppointmentViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.AppointmentSerializer
@@ -230,18 +190,21 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
 
     def put(self, request, pkid):
         try:
-            data = {"date": request.data["date"]}
+            data = {
+                "date": request.data["date"],
+            }
 
             instance = Appointment.objects.get(pkid=pkid)
             serializer = self.serializer_class(instance, data=data)
-            print(data)
+           
             if serializer.is_valid():
                 serializer.save()
 
                 Notification.objects.create(
-                    notificationType="DONOR",
+                    notificationType="APPOINTMENT",
                     author=request.user,
                     recipient=instance.donor,
+                    title=f"Appointment Schedule from {request.user.hospitalName}",
                     message=request.data["message"],
                 )
 
@@ -382,16 +345,17 @@ class HospitalComplaintViewSet(generics.GenericAPIView):
 
                 complaint = Complaint.objects.get(pkid=serializer.data["pkid"])
 
+                # ComplaintHistory.objects.create(
+                #     complaint=complaint,
+                #     headline=f"{hospital.hospitalName} Created this Complaint",
+                #     author=request.user,
+                # )
                 ComplaintHistory.objects.create(
-                    status="STATUS",
-                    complaint=complaint,
-                    headline="You created this complaint".upper(),
-                )
-                ComplaintHistory.objects.create(
-                    status="THREAD",
-                    headline="You replied",
+                    # status="THREAD",
+                    headline=f"{hospital.hospitalName} Replied",
                     message=request.data["message"],
                     complaint=complaint,
+                    author=request.user,
                 )
 
                 return Response(
@@ -556,7 +520,7 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            notifications = Notification.objects.filter(recipient=request.user)
+            notifications = Notification.objects.filter(Q(recipient=request.user) | Q(recipients=request.user))
 
             serializer = self.serializer_class(notifications, many=True)
 
@@ -580,20 +544,18 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
                 ),
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    
+
     def put(self, request, notificationId):
         try:
             notification = Notification.objects.get(pkid=notificationId)
 
-            data = {
-                "is_read": True
-            }
+            data = {"is_read": True}
 
             serializer = self.serializer_class(notification, data=data)
 
             if serializer.is_valid():
                 serializer.save()
-                
+
                 return Response(
                     data=CustomResponse(
                         "Hospital notification fetched successfully.",
@@ -625,6 +587,10 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
             )
 
 
+<<<<<<< HEAD
 update_hospital_viewset = UpdateHospitalViewSet.as_view()
 
 
+=======
+hospital_notifications_viewset = HospitalNotificationsViewSet.as_view()
+>>>>>>> origin/main

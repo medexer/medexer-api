@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render
 from django.db.models import Q
 from rest_framework import status
@@ -9,8 +10,212 @@ from .models import User
 from apps.common.validations import auth_validations
 from apps.common.custom_response import CustomResponse
 from .tasks import send_forgotpassword_mail, send_hospital_welcome_mail
-from apps.common.id_generator import donor_id_generator, otp_id_generator, hospital_id_generator
-from .serializers import DonorAuthSerializer, HospitalAuthSerializer, HospitalProfileUpdateSerializer
+from apps.common.id_generator import (
+    donor_id_generator,
+    otp_id_generator,
+    hospital_id_generator,
+)
+from .serializers import (
+    DonorAuthSerializer,
+    HospitalAuthSerializer,
+    HospitalProfileUpdateSerializer,
+)
+
+
+
+class AdminSignInViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def post(self, request):
+        """
+        Allows for a donor to login
+        """
+        if not auth_validations.validate_donor_signin(request.data):
+            return Response(
+                data=CustomResponse(
+                    auth_validations.validation_message,
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.filter(Q(email=request.data["email"].strip())).first()
+
+            if user is None:
+                return Response(
+                    data=CustomResponse(
+                        "Admin is not registered",
+                        "NOT-FOUND",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            if not user.check_password(request.data["password"]):
+                return Response(
+                    data=CustomResponse(
+                        "Unauthorized",
+                        "INVALID-CREDENTIALS",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if not user.is_administrator:
+                return Response(
+                    data=CustomResponse(
+                        "Unauthorized",
+                        "INVALID-CREDENTIALS",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            refresh__token = RefreshToken.for_user(user)
+            access__token = "Bearer " + str(refresh__token.access_token)
+
+            serializer = self.serializer_class(user)
+
+            return Response(
+                data=CustomResponse(
+                    "Admin login successful",
+                    "SUCCESS",
+                    200,
+                    data={
+                        "user": serializer.data,
+                        "access": access__token,
+                        "refresh": str(refresh__token),
+                    },
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[ADMIN-LOGIN-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during admin login. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+admin_signin_viewset = AdminSignInViewSet.as_view()
+
+
+class AdminProfileUpdateViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def patch(self, request):
+        """
+        Allows for an admin to patch their password
+        """
+        try:
+            user = User.objects.filter(Q(email=request.data["email"].strip())).first()
+
+            data = {
+                "email": request.data['email'],
+                "fullName": request.data['fullName'],
+            }
+            
+            user.email = request.data['email']
+            user.fullName = request.data['fullName']
+            user.save()
+
+            serializer = self.serializer_class(user)
+            # serializer = self.serializer_class(user, data=data)
+
+            # if serializer.is_valid():
+            #     serializer.save()
+
+            return Response(
+                data=CustomResponse(
+                    "Admin profile update successful",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+            # print(f"[ADMIN-PASSWORD-UPDATE-ERROR] :: {serializer.errors}")
+            # return Response(
+            #     data=CustomResponse(
+            #         f"An error occured during admin password update.",
+            #         "BAD REQUEST",
+            #         400,
+            #         serializer.errors,
+            #     ),
+            #     status=status.HTTP_400_BAD_REQUEST,
+            # )
+        except Exception as e:
+            print(f"[ADMIN-PASSWORD-UPDATE-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during admin password update. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+admin_profile_update_viewset = AdminProfileUpdateViewSet.as_view()
+
+
+class AdminPasswordUpdateViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def patch(self, request):
+        """
+        Allows for an admin to patch their password
+        """
+        try:
+            user = User.objects.filter(Q(email=request.data["email"].strip())).first()
+
+            if not user.check_password(request.data["currentPassword"]):
+                return Response(
+                    data=CustomResponse(
+                        "Unauthorized",
+                        "INVALID-CREDENTIALS",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            print(f"[PASSWORD] :: {request.data['newPassword']}")
+            user.set_password(request.data['newPassword'])
+            user.save()
+    
+            return Response(
+                data=CustomResponse(
+                    "Admin password update successful",
+                    "SUCCESS",
+                    200,
+                    None,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[ADMIN-PASSWORD-UPDATE-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during admin password update. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+admin_password_update_viewset = AdminPasswordUpdateViewSet.as_view()
 
 
 class DonorSignUpViewSet(APIView):
@@ -64,6 +269,7 @@ class DonorSignUpViewSet(APIView):
                     ),
                     status=status.HTTP_201_CREATED,
                 )
+            print(f"[DONOR-SIGNUP-ERROR] :: {serializer.errors}")
             return Response(
                 data=CustomResponse(
                     "An error occured during donor signup.",
@@ -297,7 +503,12 @@ class HospitalSignUpViewSet(APIView):
                 "is_hospital": True,
                 "hospitalID": hospitalID,
                 "email": request.data["email"],
-                "location": request.data["location"],
+                # "location": request.data["location"],
+                "address": request.data["address"],
+                "state": request.data["state"],
+                # "city": request.data["city"],
+                "lga": request.data["lga"],
+                "postalCode": request.data["postalCode"],
                 "password": request.data["password"],
                 "hospitalName": request.data["hospitalName"],
             }
@@ -424,7 +635,6 @@ class HospitalSignInViewSet(APIView):
 hospital_signin_viewset = HospitalSignInViewSet.as_view()
 
 
-
 class UpdateHospitalViewSet(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = HospitalProfileUpdateSerializer
@@ -433,7 +643,7 @@ class UpdateHospitalViewSet(APIView):
         try:
             instance = User.objects.get(pkid=request.user.pkid)
 
-            if not instance.check_password(request.data['currentPassword']):
+            if not instance.check_password(request.data["currentPassword"]):
                 return Response(
                     data=CustomResponse(
                         f"Unauthorized",
@@ -443,13 +653,13 @@ class UpdateHospitalViewSet(APIView):
                     ),
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-                
+
             serializer = self.serializer_class(instance, data=request.data)
 
             if serializer.is_valid():
                 serializer.save()
-                
-                instance.set_password(request.data['newPassword'])
+
+                instance.set_password(request.data["newPassword"])
                 instance.save()
 
                 _serializer = HospitalAuthSerializer(instance)
@@ -463,7 +673,7 @@ class UpdateHospitalViewSet(APIView):
                     ),
                     status=status.HTTP_200_OK,
                 )
-            print(f'[ERROR] :: {serializer.errors}')
+            print(f"[ERROR] :: {serializer.errors}")
             return Response(
                 data=CustomResponse(
                     f"An error occured during hospital update",
@@ -488,6 +698,82 @@ class UpdateHospitalViewSet(APIView):
 
 
 update_hospital_viewset = UpdateHospitalViewSet.as_view()
+
+
+class DonorUpdateProfileViewSet(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DonorAuthSerializer
+
+    def put(self, request):
+        try:
+            user = User.objects.get(pkid=request.user.pkid)
+
+            if user.check_password(request.data["password"]):
+                # print(request.data)
+                # print(request.FILES["avatar"])
+
+                data = {
+                    "email": request.data["email"],
+                }
+
+                if len(request.FILES) > 0 and "avatar" in request.FILES:
+                    print("[AVATAR-PRESENT]")
+                    os.remove(user.avatar.path)
+                    data["avatar"] = request.FILES["avatar"]
+
+                serializer = self.serializer_class(user, data=data)
+
+                if serializer.is_valid():
+                    serializer.save()
+
+                    if request.data["new_password"] != "":
+                        user.set_password = request.data["new_password"]
+                        user.save()
+
+                    return Response(
+                        data=CustomResponse(
+                            "Donor profile updated successfully.",
+                            "SUCCESS",
+                            200,
+                            serializer.data,
+                        ),
+                        status=status.HTTP_200_OK,
+                    )
+                print(f"[ERROR] :: {serializer.errors}")
+                return Response(
+                    data=CustomResponse(
+                        "An error occured while updating donor profile.",
+                        "ERROR",
+                        400,
+                        serializer.errors,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            else:
+                return Response(
+                    data=CustomResponse(
+                        "Invalid credentials.",
+                        "ERROR",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        except Exception as e:
+            print(f"[UPDATE-DONOR-PROFILE-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating donor profile. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_update_profile_viewset = DonorUpdateProfileViewSet.as_view()
 
 
 def geeks_view(request):

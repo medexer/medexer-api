@@ -5,10 +5,10 @@ from datetime import datetime
 def CustomResponse(message, status, statusCode, data):
     _time = time()
     dateTime = datetime.fromtimestamp(_time)
-    str_time = dateTime.strftime("%A, %d %B, %Y, %I:%M %P")
+    # str_time = dateTime.strftime("%A, %d %B, %Y, %I:%M %P")
 
     return {
-        "timeStamp": str_time,
+        "timeStamp": datetime.now(),
         "message": message,
         "status": status,
         "statusCode": statusCode,

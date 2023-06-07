@@ -82,6 +82,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         data = {
             "id": donor.id,
             "pkid": donor.pkid,
+            "donorId": donor.donorID,
             "fullName": donor.fullName,
             "bloodGroup": donorKyc.bloodGroup,
         }
@@ -119,16 +120,6 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class HospitalComplaintSerializer(serializers.ModelSerializer):
     class Meta:
-<<<<<<< HEAD
-        model = User
-        fields = ['hospitalName','email','password']
-
-
-# class UserSerializer(serializer.ModelSerializer):
-#     class Meta:
-#         models = User
-#         fields = ['hospitalName','email','location',' hospitalID ','id','pkid']
-=======
         model = Complaint
         fields = [
             "id",
@@ -153,6 +144,6 @@ class HospitalComplaintHistorySerializer(serializers.ModelSerializer):
             "message",
             "complaint",
             "updateType",
+            "author",
             "created_at",
         ]
->>>>>>> origin/workingbranch

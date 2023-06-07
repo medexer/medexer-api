@@ -37,10 +37,15 @@ class UserAdmin(BaseUserAdmin):
             _("Personal Information"),
             {
                 "fields": (
+                    "avatar",
                     "fullName",
                     "hospitalName",
                     "donorID",
                     "hospitalID",
+                    "address",
+                    "lga",
+                    "state",
+                    "postalCode",
                     "otp",
                 )
             },
@@ -70,6 +75,7 @@ class UserAdmin(BaseUserAdmin):
                 "fields": (
                     "fullName",
                     "email",
+                    "hospitalName",
                     "password1",
                     "password2",
                     "is_staff",

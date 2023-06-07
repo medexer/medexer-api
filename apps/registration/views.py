@@ -6,9 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from apps.user.models import User
 from apps.common.custom_response import CustomResponse
 from .models import KnowYourBusiness, KnowYourCustomer
-from apps.user.serializers import HospitalAuthSerializer
 from apps.common.validations import registration_validations
 from .serializers import DonorKYCSerializer, HospitalKYBSerializer
+from apps.user.serializers import HospitalAuthSerializer, DonorAuthSerializer
 
 
 class DonorKYCViewSet(APIView):
@@ -60,18 +60,23 @@ class DonorKYCViewSet(APIView):
             }
 
             serializer = self.serializer_class(data=data)
+            _serializer = DonorAuthSerializer(donor)
 
             if serializer.is_valid():
                 serializer.save()
                 donor.is_kyc_updated = True
                 donor.save()
 
+
                 return Response(
                     data=CustomResponse(
                         "Donor KYC successfully captured",
                         "SUCCESS",
                         201,
-                        serializer.data,
+                        {
+                            "data": serializer.data,
+                            "user": _serializer.data,
+                        },
                     ),
                     status=status.HTTP_201_CREATED,
                 )
@@ -140,7 +145,9 @@ class HospitalKYBViewSet(APIView):
                 )
             data = {
                 "cacRegistrationID": request.data["cacRegistrationID"],
-                "websiteUrl": request.data["websiteUrl"] if request.data["websiteUrl"] else '',
+                "websiteUrl": request.data["websiteUrl"]
+                if request.data["websiteUrl"]
+                else "",
                 "logo": request.FILES["logo"],
                 "address": request.data["address"],
                 "description": request.data["description"],
@@ -163,8 +170,8 @@ class HospitalKYBViewSet(APIView):
                         "SUCCESS",
                         201,
                         {
-                            "data" : serializer.data,
-                            "hospital" : hospital_serializer.data,
+                            "data": serializer.data,
+                            "hospital": hospital_serializer.data,
                         },
                     ),
                     status=status.HTTP_201_CREATED,

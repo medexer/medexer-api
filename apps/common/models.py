@@ -18,6 +18,11 @@ class NotificationType(models.TextChoices):
     APP_UPDATE = "APP_UPDATE"
     ADMIN = "ADMIN"
     COMPLAINT = "COMPLAINT"
+
+class NotificationAuthorType(models.TextChoices):
+    HOSPITAL = "HOSPITAL"
+    DONOR = "DONOR"
+    ADMIN = "ADMIN"
         
 class BloodGroup(models.TextChoices):
     OPositive = "O+"

@@ -4,6 +4,7 @@ from .managers import CustomUserManager
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
+from apps.common.media import avatar_path
 
 class User(AbstractBaseUser, PermissionsMixin):
     pkid = models.BigAutoField(primary_key=True, editable=False)
@@ -14,6 +15,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     hospitalName = models.CharField(verbose_name=_("Hospital Name"), max_length=255, blank=True, null=True)
     donorID = models.CharField(verbose_name=_("Donor ID"), max_length=255, unique=True, blank=True, null=True)
     hospitalID = models.CharField(verbose_name=_("Hospital ID"), max_length=255, unique=True, blank=True, null=True)
+    address = models.CharField(max_length=255, blank=True, null=True)
+    # city = models.CharField(max_length=255, blank=True, null=True)
+    lga = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=255, blank=True, null=True)
+    postalCode = models.CharField(max_length=255, blank=True, null=True)
+    avatar =models.ImageField(upload_to=avatar_path, default='/images/profile/avatar__1.png', blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
