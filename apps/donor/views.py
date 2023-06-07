@@ -343,7 +343,7 @@ class DonorNotificationsViewSet(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            notifications = Notification.objects.filter(recipient=request.user)
+            notifications = Notification.objects.filter(Q(recipient=request.user) | Q(recipients=request.user))
 
             serializer = self.serializer_class(notifications, many=True)
 

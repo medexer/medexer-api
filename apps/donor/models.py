@@ -8,6 +8,8 @@ class Appointment(TimeStampedUUIDModel):
     donor = models.ForeignKey(User, related_name="appointment_donor", blank=True, null=True, on_delete=models.CASCADE)
     hospital = models.ForeignKey(User, related_name="appointment_hospital", blank=True, null=True, on_delete=models.CASCADE)
     message = models.TextField(blank=True, null=True)
+    pints = models.CharField(max_length=255, default="0", blank=True, null=True)
+    donationDate = models.DateField(blank=True, null=True)
     isDonated = models.BooleanField(default=False,null=True,blank=True)
     
     def __str__(self):

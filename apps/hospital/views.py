@@ -345,16 +345,17 @@ class HospitalComplaintViewSet(generics.GenericAPIView):
 
                 complaint = Complaint.objects.get(pkid=serializer.data["pkid"])
 
+                # ComplaintHistory.objects.create(
+                #     complaint=complaint,
+                #     headline=f"{hospital.hospitalName} Created this Complaint",
+                #     author=request.user,
+                # )
                 ComplaintHistory.objects.create(
-                    status="STATUS",
-                    complaint=complaint,
-                    headline="You created this complaint".upper(),
-                )
-                ComplaintHistory.objects.create(
-                    status="THREAD",
-                    headline="You replied",
+                    # status="THREAD",
+                    headline=f"{hospital.hospitalName} Replied",
                     message=request.data["message"],
                     complaint=complaint,
+                    author=request.user,
                 )
 
                 return Response(
@@ -519,7 +520,7 @@ class HospitalNotificationsViewSet(generics.GenericAPIView):
 
     def get(self, request):
         try:
-            notifications = Notification.objects.filter(recipient=request.user)
+            notifications = Notification.objects.filter(Q(recipient=request.user) | Q(recipients=request.user))
 
             serializer = self.serializer_class(notifications, many=True)
 

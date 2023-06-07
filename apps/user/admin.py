@@ -75,6 +75,7 @@ class UserAdmin(BaseUserAdmin):
                 "fields": (
                     "fullName",
                     "email",
+                    "hospitalName",
                     "password1",
                     "password2",
                     "is_staff",
