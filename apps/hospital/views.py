@@ -201,12 +201,12 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
     serializer_class = serializers.AppointmentSerializer
 
     def get(self, request):
-        appointments = Appointment.objects.filter(
-            Q(hospital=request.user.pkid) & Q(isDonated=False)
-        )
-        serializer = self.serializer_class(appointments, many=True)
+        try:
+            appointments = Appointment.objects.filter(
+                Q(hospital=request.user.pkid) & Q(isDonated=False)
+            )
+            serializer = self.serializer_class(appointments, many=True)
 
-        if serializer.is_valid:
             return Response(
                 data=CustomResponse(
                     "Hospital appointments fetched successfully",
@@ -216,15 +216,17 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
                 ),
                 status=status.HTTP_200_OK,
             )
-        return Response(
-            data=CustomResponse(
-                f"An error occured while fetching hospital appointment ",
-                "BAD REQUEST",
-                400,
-                None,
-            ),
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-APPOINTMENTS-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital appointment ",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     def put(self, request, pkid):
         try:
