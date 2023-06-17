@@ -8,6 +8,12 @@ def avatar_path(model, file):
     filename = avatar_id_generator() + "." + file.split(".")[1]
     return os.path.join(class_name, code, filename)
 
+def hospital_image_path(model, file):
+    class_name = "images"
+    code = "hospital_profile"
+    filename = avatar_id_generator() + "." + file.split(".")[1]
+    return os.path.join(class_name, code, filename)
+
 def kyc_document_path(model, file):
     class_name = "images"
     code = "kyc"

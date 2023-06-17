@@ -222,8 +222,7 @@ class HospitalsViewSet(generics.GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
     
-    
-    
+        
 hospitals_viewset = HospitalsViewSet.as_view()
 
 
@@ -666,3 +665,63 @@ class SearchCustomersViewSet(generics.GenericAPIView):
             
             
 search_customers_viewset = SearchCustomersViewSet.as_view()
+
+class PaymentHistoryViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.PaymentHistorySerializer
+    
+    def post(self, request):
+        try:
+            # hospital = User.objects.get(pkid=request.data['hospital'])
+            appointment = Appointment.objects.get(pkid=request.data['appointment'])
+
+            data = {
+                "hospital": request.data["hospital"],
+                "appointment": request.data["appointment"],
+                "amount_paid": request.data["amount_paid"],
+                "payment_date": request.data["payment_date"],
+                "payment_method": request.data["payment_method"],
+                "payment_reference": request.data["payment_reference"],
+                "currency": request.data["currency"],
+            }
+
+            serializer = self.serializer_class(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+                
+                appointment.isPaid = True
+                appointment.save()
+                    
+                return Response(
+                    data=CustomResponse(
+                        "Payment history added successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while creating payment history.",
+                    "ERROR",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[INITIALIZE-DONATION-PAYMENT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while creating payment history. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+paymenthistory_viewset = PaymentHistoryViewSet.as_view()

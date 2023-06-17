@@ -1,7 +1,6 @@
-from django.shortcuts import render
+import os, requests, json
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from . import serializers
 from .models import Inventory
@@ -10,10 +9,14 @@ from . import serializers
 from .models import *
 from django.db.models import Q
 from apps.administrator.models import *
+from apps.registration.models import KnowYourCustomer
 from apps.donor.models import Appointment, DonationHistory
 from apps.common.validations import hospital_validations
 from apps.common.id_generator import complaint_id_generator
 from apps.common.custom_response import CustomResponse, CurrentTimeStamp
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class InventoryItemHistoryViewSet(generics.GenericAPIView):
@@ -163,7 +166,7 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
     def get(self, request):
         try:
             appointments = Appointment.objects.filter(
-                Q(hospital=request.user.pkid) & Q(isDonated=False)
+                Q(hospital=request.user.pkid) & Q(isPaid=False)
             )
             serializer = self.serializer_class(appointments, many=True)
 
@@ -240,6 +243,196 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
 
 
 hospital_appointment_viewset = HospitalAppointmentViewSet.as_view()
+
+
+class HospitalProcessDonationViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.AppointmentSerializer
+
+    def put(self, request, pkid):
+        try:
+            data = {
+                "isDonated": True,
+                "pints": request.data["pints"],
+                "donationDate": request.data["donationDate"],
+            }
+
+            instance = Appointment.objects.get(pkid=pkid)
+            donorProfile = KnowYourCustomer.objects.get(donor=instance.donor)
+            inventory = Inventory.objects.filter(Q(hospital=instance.hospital) & Q(bloodGroup=donorProfile.bloodGroup)).first()
+            
+            serializer = self.serializer_class(instance, data=data)
+           
+            if serializer.is_valid():
+                serializer.save()
+
+                inventory.bloodUnits = inventory.bloodUnits + int(request.data['pints'])
+
+                inventory.save()
+
+                Notification.objects.create(
+                    notificationType="APPOINTMENT",
+                    author=request.user,
+                    recipient=instance.donor,
+                    title=f"Donation Alert",
+                    message=f"You donation with {instance.hospital.hospitalName} has been successfully processed. We appreciate your patience as we handle your incentives within two working days.",
+                )
+                DonationHistory.objects.create(
+                    donor=instance.donor,
+                    message=f"Donated {instance.pints} pints of blood on {instance.created_at}"
+                )
+
+                return Response(
+                    data=CustomResponse(
+                        "Donor appointment processed successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while processing donation.",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[RESCHEDULE-APPOINTMENT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while processing donation. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+hospital_process_donation_viewset = HospitalProcessDonationViewSet.as_view()
+
+
+class HospitalDonationPaymentViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.AppointmentSerializer
+    
+    def get(self, request, reference):
+        """
+        Allows for a hospital to verify a donation payment
+        """
+        try:
+            url = f"https://api.paystack.co/transaction/verify/{reference}"
+            headers = {
+                "authorization": f"Bearer {os.getenv('PAYSTACK_SECRET')}"
+            }
+
+            r = requests.get(url, headers=headers)
+
+            response = r.json()
+            
+            return Response(
+                data=CustomResponse(
+                    "Donation payment verification successful",
+                    "SUCCESS",
+                    200,
+                    response,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[VERIFY-DONATION-PAYMENT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while verifying donation payment. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def post(self, request, donation):
+        try:
+            donation = Appointment.objects.get(pkid=donation)
+            hospital = User.objects.get(pkid=request.user.pkid)
+            
+            url = "https://api.paystack.co/transaction/initialize"
+            headers = {
+                "authorization": f"Bearer {os.getenv('PAYSTACK_SECRET')}"
+            }
+
+            data = {
+                "email": hospital.email,
+                "amount": (7650 * 100),
+                "callback_url": "http://localhost:3000/payment/verify",
+                "metadata": json.dumps({
+                    "cart_id": donation.pkid,
+                    "custom_fields": [
+                        {
+                            "display_name": "Appointment ID",
+                            "variable_name": "appointment_id",
+                            "value": f"{donation.pkid}",
+                        },
+                        {
+                            "display_name": "Hospital ID",
+                            "variable_name": "donation_id",
+                            "value": f"{donation.hospital.hospitalID}",
+                        },
+                        {
+                            "display_name": "Donor name",
+                            "variable_name": "donor_name",
+                            "value": f"{donation.donor.fullName}",
+                        },
+                        {
+                            "display_name": "Blood pints",
+                            "variable_name": "blood_pints",
+                            "value": f"{donation.pints}",
+                        },
+                        {
+                            "display_name": "Hospital name",
+                            "variable_name": "hospital_name",
+                            "value": f"{donation.hospital.hospitalName}",
+                        },
+                        {
+                            "display_name": "Donation date",
+                            "variable_name": "donation_date",
+                            "value": f"{donation.donationDate}",
+                        },
+                    ]
+                })
+            }
+
+            r = requests.post(url, headers=headers, data=data)
+
+            response = r.json()
+
+            return Response(
+                data=CustomResponse(
+                    "Donation payment initialization generated successfully",
+                    "SUCCESS",
+                    200,
+                    response['data'],
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[INITIALIZE-DONATION-PAYMENT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while initializing donation payment. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+hospital_donation_payment_viewset = HospitalDonationPaymentViewSet.as_view()
 
 
 class DonorDonationHistoryViewSet(generics.GenericAPIView):

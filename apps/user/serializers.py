@@ -14,6 +14,7 @@ class DonorAuthSerializer(serializers.ModelSerializer):
             "is_active",
             "avatar",
             "is_donor",
+            "is_email_login",
             "otp",
             "password",
             "is_kyc_updated",

@@ -10,7 +10,8 @@ class Appointment(TimeStampedUUIDModel):
     message = models.TextField(blank=True, null=True)
     pints = models.CharField(max_length=255, default="0", blank=True, null=True)
     donationDate = models.DateField(blank=True, null=True)
-    isDonated = models.BooleanField(default=False,null=True,blank=True)
+    isPaid = models.BooleanField(default=False)
+    isDonated = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.donor} - {self.hospital} {self.date}"

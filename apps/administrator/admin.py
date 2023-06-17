@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import Notification, Complaint, ComplaintHistory, Integration
+from .models import Notification, Complaint, ComplaintHistory, Integration, PaymentHistory
 
 
 @admin.register(Integration)
-class OrderAdmin(admin.ModelAdmin):
+class IntegrationAdmin(admin.ModelAdmin):
     list_display = ["id", "pkid", "organization", "state", 'cac_id', 'is_approved']
 
 
@@ -20,3 +20,8 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(ComplaintHistory)
 class OrderAdmin(admin.ModelAdmin):
     list_display = ["id", "pkid", "updateType", "headline"]
+
+
+@admin.register(PaymentHistory)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ["id", "pkid", "amount_paid", "hospital"]
