@@ -158,7 +158,7 @@ class DonationCentersLocationDataViewSet(generics.GenericAPIView):
                 # print(f"{center.address}, {center.postalCode}, {center.lga}, {center.state}")
                 # print(_center_geocode_result)
                 for result in _center_geocode_result:
-                    print(result)
+                    # print(result)
                     geocodeData.append(
                         {
                             "centerName": center.hospitalName,
@@ -169,7 +169,7 @@ class DonationCentersLocationDataViewSet(generics.GenericAPIView):
                     )
                     # print(geocodeData)
 
-            print(f"[GEO] :: {geocodeData}")
+            # print(f"[GEO] :: {geocodeData}")
             return Response(
                 data=CustomResponse(
                     "Donation center fetched successfully",

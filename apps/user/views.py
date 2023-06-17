@@ -371,6 +371,110 @@ class DonorSignInViewSet(APIView):
 donor_signin_viewset = DonorSignInViewSet.as_view()
 
 
+class DonorGoogleSignInViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def post(self, request):
+        """
+        Allows for a donor to login with google oauth
+        """
+        try:
+            _user = User.objects.filter(Q(email=request.data["email"].strip())).first()
+
+            donorID = donor_id_generator()
+            users = User.objects.all()
+
+            for user in users:
+                if user.donorID == donorID:
+                    donorID = donor_id_generator()
+
+            if _user is None:
+                data = {
+                    "is_donor": True,
+                    "donorID": donorID,
+                    "email": request.data["email"],
+                    "fullName": request.data["fullName"],
+                    "password": request.data["password"],
+                }
+                
+                serializer = self.serializer_class(data=data)
+                
+                if serializer.is_valid():
+                    serializer.save()
+            
+                    new_user = User.objects.filter(Q(email=request.data["email"].strip())).first()
+
+                    new_user.is_email_login = True
+                    new_user.save()
+                        
+                    refresh__token = RefreshToken.for_user(new_user)
+                    access__token = "Bearer " + str(refresh__token.access_token)
+
+                    serializer = self.serializer_class(new_user)
+
+                    return Response(
+                        data=CustomResponse(
+                            "Donor login successful",
+                            "SUCCESS",
+                            200,
+                            data={
+                                "user": serializer.data,
+                                "access": access__token,
+                                "refresh": str(refresh__token),
+                            },
+                        ),
+                        status=status.HTTP_200_OK,
+                    )
+                print(f"[DONOR-SIGNUP-ERROR] :: {serializer.errors}")
+                return Response(
+                    data=CustomResponse(
+                        "An error occured during donor signup.",
+                        "BAD REQUEST",
+                        400,
+                        serializer.errors,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+                
+            user = User.objects.filter(Q(email=request.data["email"].strip())).first()
+
+            user.is_email_login = True
+            user.save()
+
+            refresh__token = RefreshToken.for_user(user)
+            access__token = "Bearer " + str(refresh__token.access_token)
+
+            serializer = self.serializer_class(user)
+
+            return Response(
+                data=CustomResponse(
+                    "Donor login successful",
+                    "SUCCESS",
+                    200,
+                    data={
+                        "user": serializer.data,
+                        "access": access__token,
+                        "refresh": str(refresh__token),
+                    },
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[DONOR-LOGIN-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured during donor login. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_googlesignin_viewset = DonorGoogleSignInViewSet.as_view()
+
+
 class DonorForgotPasswordViewSet(APIView):
     serializer_class = DonorAuthSerializer
 
@@ -471,6 +575,79 @@ class DonorResetPasswordViewSet(APIView):
 
 
 donor_resetpassword_viewset = DonorResetPasswordViewSet.as_view()
+
+
+class DonorSignoutViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def put(self, request):
+        """
+        Allows for a donor to generate update his email login field on signout
+        """
+        try:
+            user = User.objects.get(pkid=request.user.pkid)
+
+            user.is_email_login = False
+            user.save()
+
+            return Response(
+                data=CustomResponse(
+                    "Donor info updated successfully",
+                    "SUCCESS",
+                    200,
+                    None,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[DONOR-RESET-EMAIL-LOGIN-INFO-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"Failure occurred during donor email login info on signout. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_signout_viewset = DonorSignoutViewSet.as_view()
+
+
+class DonorDeleteAccountViewSet(APIView):
+    def delete(self, request):
+        """
+        Allows for a donor to delete his account
+        """
+        try:
+            user = User.objects.get(pkid=request.user.pkid)
+
+            user.delete()
+            
+            return Response(
+                data=CustomResponse(
+                    "Donor account deleted successfully",
+                    "SUCCESS",
+                    200,
+                    None,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[DONOR-DELETE-ACCOUNT-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"Failure occurred during donor delete account. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_delete_account_viewset = DonorDeleteAccountViewSet.as_view()
 
 
 class HospitalSignUpViewSet(APIView):
@@ -774,6 +951,65 @@ class DonorUpdateProfileViewSet(APIView):
 
 
 donor_update_profile_viewset = DonorUpdateProfileViewSet.as_view()
+
+
+class DonorUpdateProfileWithGoogleSigninViewSet(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DonorAuthSerializer
+
+    def put(self, request):
+        try:
+            user = User.objects.get(pkid=request.user.pkid)
+            
+            data = {
+                "email": request.data["email"],
+                "password": request.user.password,
+            }
+
+            if len(request.FILES) > 0 and "avatar" in request.FILES:
+                print("[AVATAR-PRESENT]")
+                os.remove(user.avatar.path)
+                data["avatar"] = request.FILES["avatar"]
+
+            serializer = self.serializer_class(user, data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                return Response(
+                    data=CustomResponse(
+                        "Donor profile updated successfully.",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            print(f"[ERROR] :: {serializer.errors}")
+            return Response(
+                data=CustomResponse(
+                    "An error occured while updating donor profile.",
+                    "ERROR",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        except Exception as e:
+            print(f"[UPDATE-DONOR-PROFILE-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating donor profile. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_update_profile_with_google_signin_viewset = DonorUpdateProfileWithGoogleSigninViewSet.as_view()
 
 
 def geeks_view(request):

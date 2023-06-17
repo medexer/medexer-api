@@ -1,5 +1,6 @@
 from django.db import models
 from apps.user.models import User
+from apps.donor.models import Appointment
 from apps.common.models import TimeStampedUUIDModel, NotificationType, NotificationAuthorType, ComplaintStatusType
 
 
@@ -63,3 +64,16 @@ class ComplaintHistory(TimeStampedUUIDModel):
 
     class Meta():
         verbose_name_plural = "Complaint History"
+        
+
+class PaymentHistory(TimeStampedUUIDModel):
+    amount_paid = models.PositiveBigIntegerField(default=0, blank=True, null=True)
+    payment_date = models.DateField(blank=True, null=True)
+    payment_method = models.CharField(max_length=255, blank=True, null=True)
+    payment_reference = models.CharField(max_length=255, blank=True, null=True)
+    currency = models.CharField(max_length=255, blank=True, null=True)
+    hospital = models.ForeignKey(User, related_name="payment_history_hospital", blank=True, null=True, on_delete=models.DO_NOTHING)
+    appointment = models.ForeignKey(Appointment, related_name="payment_history_donation", blank=True, null=True, on_delete=models.DO_NOTHING)
+    
+    class Meta:
+        verbose_name_plural = "PaymentHistory"

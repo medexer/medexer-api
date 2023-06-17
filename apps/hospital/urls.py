@@ -4,6 +4,9 @@ from . import views
 urlpatterns = [
     path("appointments/", views.hospital_appointment_viewset , name="hospital-appointments"),
     path("appointment/update/<int:pkid>", views.hospital_appointment_viewset, name="update-appointment-hospital"),
+    path("appointment/process/<int:pkid>", views.hospital_process_donation_viewset, name="process-successful-donation"),
+    path("appointment/payment/verify/<str:reference>", views.hospital_donation_payment_viewset, name="verify-donation-payment"),
+    path("appointment/payment/initialize/<int:donation>", views.hospital_donation_payment_viewset, name="process-donation-payment"),
     path("inventory/fetch-all", views.hospital_inventory_viewset, name="fetch-all-inventory"),
     path("inventory/<str:bloodGroup>/update-units", views.inventory_item_detail_viewset, name="inventroy-item-update"),
     path("inventory/<str:bloodGroup>/activity/fetch-all", views.inventory_item_history_viewset , name="inventroy-item-activity"),

@@ -2,7 +2,7 @@ from apps.user.models import User
 from rest_framework import serializers
 from apps.donor.models import Appointment
 from apps.registration.models import KnowYourBusiness, KnowYourCustomer
-from .models import Integration, Complaint, ComplaintHistory, Notification
+from .models import Integration, Complaint, ComplaintHistory, Notification, PaymentHistory
 
 
 class IntegrationSerializer(serializers.ModelSerializer):
@@ -213,5 +213,20 @@ class CustomerSearchSerializer(serializers.ModelSerializer):
             'is_hospital',
             'donorID',
             'hospitalID',
+        ]
+        
+class PaymentHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentHistory
+        fields = [
+            'id',
+            'pkid',
+            'amount_paid',
+            'payment_date',
+            'payment_method',
+            'payment_reference',
+            'currency',
+            'hospital',
+            'appointment',
         ]
         

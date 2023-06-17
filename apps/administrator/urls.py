@@ -17,4 +17,5 @@ urlpatterns = [
     path('complaints/<int:complaint>/reply-thread', views.complaint_history_viewset, name="reply-complaint-thread"),
     path('notifications/fetch-all', views.notifications_viewset, name="fetch-notifications"),
     path('notifications/create', views.notifications_viewset, name="create-notifications"),
+    path('payment-history/add-record', views.paymenthistory_viewset, name="add-payment-history"),
 ]

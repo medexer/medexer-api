@@ -3,6 +3,7 @@ from .models import *
 from dotenv import load_dotenv
 from apps.user.models import User
 from rest_framework import serializers
+from apps.profile.models import Profile
 from apps.hospital.models import Inventory
 from apps.administrator.models import Notification
 
@@ -42,6 +43,7 @@ class DonationCenterSerializer(serializers.ModelSerializer):
     centerAddress = serializers.SerializerMethodField()
     inventoryBalance = serializers.SerializerMethodField()
     centerGeoLocation = serializers.SerializerMethodField()
+    hospitalProfile = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -55,12 +57,27 @@ class DonationCenterSerializer(serializers.ModelSerializer):
             "centerAddress",
             "inventoryBalance",
             "centerGeoLocation",
+            "hospitalProfile",
         ]
 
     def get_centerAddress(self, obj):
         center = User.objects.get(pkid=obj.pkid)
 
         return f"{center.address}, {center.postalCode}, {center.lga}, {center.state} state."
+
+    def get_hospitalProfile(self, obj):
+        profile = Profile.objects.get(user=obj.pkid)
+
+        data = {
+            "address": profile.address,
+            "state": profile.state,
+            "about_hospital": profile.about_hospital,
+            "city_province": profile.city_province,
+            "contact_number": profile.contact_number,
+            "hospitalImage": profile.hospitalImage.url,
+        }
+        
+        return data
 
     def get_inventoryBalance(self, obj):
         balance = 0
@@ -82,7 +99,6 @@ class DonationCenterSerializer(serializers.ModelSerializer):
 
 
         for result in geocode_result:
-            print(result)
             data = result["geometry"]["location"]
 
         return data
