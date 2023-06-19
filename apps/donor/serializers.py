@@ -75,7 +75,7 @@ class DonationCenterSerializer(serializers.ModelSerializer):
             "about_hospital": profile.about_hospital if profile.about_hospital else None,
             "city_province": profile.city_province if profile.city_province else None,
             "contact_number": profile.contact_number if profile.contact_number else None,
-            "hospitalImage": profile.hospitalImage.url if profile.hospitalImage.url else None,
+            "hospitalImage": profile.hospitalImage.url if profile.hospitalImage else None,
         }
         
         return data
