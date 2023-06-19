@@ -19,6 +19,39 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+class DashboardViewSet(generics.GenericAPIView):
+    queryset = Inventory.objects.all()
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.InventoryHistorySerializer
+
+    def get(self, request):
+        try:
+            
+            return Response(
+                data=CustomResponse(
+                    f"Fetched hospital dashboard data successfully.",
+                    "SUCCESS",
+                    200,
+                    None,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-INVENTORY-ACTIVITY-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching dashboard data. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+dashboard_viewset = DashboardViewSet.as_view()
+
+
 class InventoryItemHistoryViewSet(generics.GenericAPIView):
     queryset = Inventory.objects.all()
     permission_classes = [IsAuthenticated]
@@ -59,46 +92,58 @@ inventory_item_history_viewset = InventoryItemHistoryViewSet.as_view()
 
 class InventoryItemViewSet(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = serializers.InventorySerializer
+    serializer_class = serializers.InventoryItemSerializer
 
-    def put(self, request, bloodGroup):
+    def put(self, request, inventoryItem):
         try:
             activity = ""
             data = {
                 "bloodUnits": int(request.data["units"]),
             }
 
-            instance = Inventory.objects.get(
-                bloodGroup=bloodGroup, hospital=request.user.pkid
+            instance = InventoryItem.objects.get(
+                pkid=inventoryItem, hospitalID=request.user.hospitalID
+            )
+            inventory = Inventory.objects.get(
+                bloodGroup=instance.bloodGroup, hospital=request.user.pkid
             )
 
             if instance.bloodUnits < int(data["bloodUnits"]):
-                activity = f"{request.data['count']} added on {CurrentTimeStamp()}"
+                activity = f"{request.data['count']} pint added on {CurrentTimeStamp()}"
             else:
-                activity = f"{request.data['count']} removed on {CurrentTimeStamp()}"
+                activity = f"{request.data['count']} pint removed on {CurrentTimeStamp()}"
 
             serializer = self.serializer_class(instance, data=data)
 
             if serializer.is_valid():
                 serializer.save()
 
+                inventory.bloodUnits = inventory.bloodUnits - int(request.data['count'])
+                inventory.save()
+
                 InventoryActivity.objects.create(
                     activity=activity,
                     hospital=request.user,
                     bloodGroup=request.data["bloodGroup"],
                 )
-
-                _serializer = self.serializer_class(instance)
+                Notification.objects.create(
+                    notificationType="APPOINTMENT",
+                    author=request.user,
+                    recipient=instance.donor,
+                    title=f"Blood Usage",
+                    message=f"{request.data['units']} pints of your blood was used in {request.user.hospitalName}.",
+                )
 
                 return Response(
                     data=CustomResponse(
                         "Inventory item updated successfully",
                         "SUCCESS",
                         200,
-                        _serializer.data,
+                        serializer.data,
                     ),
                     status=status.HTTP_200_OK,
                 )
+            print(f"[UPDATE-INVENTORY-ITEM-ERROR] :: {serializer.errors}")
             return Response(
                 data=CustomResponse(
                     f"An error occured while updating inventory item.",
@@ -157,6 +202,41 @@ class HospitalInventoryViewSet(generics.GenericAPIView):
 
 
 hospital_inventory_viewset = HospitalInventoryViewSet.as_view()
+
+
+class HospitalInventoryItemViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.InventoryItemSerializer
+
+    def get(self, request, bloodGroup):
+        try:
+            inventoryItems = InventoryItem.objects.filter(Q(hospitalID=request.user.hospitalID) & Q(bloodGroup=bloodGroup))
+
+            serializer = self.serializer_class(instance=inventoryItems, many=True)
+
+            return Response(
+                data=CustomResponse(
+                    f"Fetched hospital inventory items successfully.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[FETCH-HOSPITAL-INVENTORY-ITEM-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while fetching hospital inventory items. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+hospital_inventory_item_viewset = HospitalInventoryItemViewSet.as_view()
 
 
 class HospitalAppointmentViewSet(generics.GenericAPIView):
@@ -270,6 +350,14 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
 
                 inventory.save()
 
+                InventoryItem.objects.create(
+                    bloodGroup=donorProfile.bloodGroup,
+                    bloodUnits=request.data['pints'],
+                    appointmentID=instance.appointmentID,
+                    hospitalID=instance.hospital.hospitalID,
+                    donor=donorProfile.donor,
+                    inventory=inventory,
+                )
                 Notification.objects.create(
                     notificationType="APPOINTMENT",
                     author=request.user,

@@ -3,9 +3,9 @@ from .models import Appointment, DonationHistory
 
 
 @admin.register(Appointment)
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ["id", "pkid", "donor", "hospital", "date"]
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ["id", "pkid", "appointmentID", "donor", "hospital", "date"]
 
 @admin.register(DonationHistory)
-class OrderAdmin(admin.ModelAdmin):
+class DonationHistoryAdmin(admin.ModelAdmin):
     list_display = ["id", "pkid", "donor", "message"]

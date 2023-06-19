@@ -17,6 +17,7 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
         fields = [
             "pkid",
             "id",
+            "appointmentID",
             "date",
             "donor",
             "message",
@@ -69,12 +70,12 @@ class DonationCenterSerializer(serializers.ModelSerializer):
         profile = Profile.objects.get(user=obj.pkid)
 
         data = {
-            "address": profile.address,
-            "state": profile.state,
-            "about_hospital": profile.about_hospital,
-            "city_province": profile.city_province,
-            "contact_number": profile.contact_number,
-            "hospitalImage": profile.hospitalImage.url,
+            "address": profile.address if profile.address else None,
+            "state": profile.state if profile.state else None,
+            "about_hospital": profile.about_hospital if profile.about_hospital else None,
+            "city_province": profile.city_province if profile.city_province else None,
+            "contact_number": profile.contact_number if profile.contact_number else None,
+            "hospitalImage": profile.hospitalImage.url if profile.hospitalImage.url else None,
         }
         
         return data

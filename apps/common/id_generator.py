@@ -27,6 +27,19 @@ def hospital_id_generator():
     return _id
 
 
+def appointment_id_generator():
+    characters = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+    length = 10
+
+    _id = "MED-APP-"
+
+    for _ in range(length):
+        _id += random.choice(characters)
+
+    return _id
+
+
 def otp_id_generator():
     characters = list("0123456789")
 
