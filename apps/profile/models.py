@@ -13,7 +13,7 @@ class Profile(TimeStampedUUIDModel):
     occupation = models.CharField(max_length=255, blank=True, null=True)
     marital_status = models.CharField(max_length=255, blank=True, null=True)
     userAvatar = models.ImageField(upload_to=avatar_path, blank=True, null=True)
-    hospitalImage = models.ImageField(upload_to=hospital_image_path, blank=True, null=True)
+    hospitalImage = models.ImageField(upload_to=hospital_image_path, default="/images/profile/hospital__1", blank=True, null=True)
     user = models.ForeignKey(User, related_name="profile_user", blank=True, null=True, on_delete=models.CASCADE)
     
     class Meta:
