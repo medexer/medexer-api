@@ -21,4 +21,4 @@ def CurrentTimeStamp():
     dateTime = datetime.fromtimestamp(_time)
     str_time = dateTime.strftime("%A, %d %B, %Y")
     
-    return str_time
+    return f'{str_time} {datetime.now().strftime("%H:%M:%S")}'

@@ -7,11 +7,12 @@ from apps.user.models import User
 from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+
+from .tasks import send_contact_us_mail
 from apps.administrator.models import Notification
 from rest_framework.permissions import IsAuthenticated
 from apps.common.custom_response import CustomResponse
-from .tasks import send_contact_us_mail
+from apps.common.id_generator import appointment_id_generator
 
 
 load_dotenv()
@@ -52,10 +53,10 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
     def post(self, request):
         try:
             data = {
-                # "date": request.data["date"],
                 "donor": request.user.pkid,
                 "message": request.data["message"],
                 "hospital": request.data["hospital"],
+                "appointmentID": appointment_id_generator(),
             }
 
             serializer = self.serializer_class(data=data)

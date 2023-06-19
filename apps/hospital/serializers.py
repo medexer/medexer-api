@@ -1,4 +1,5 @@
 from .models import *
+from django.db.models import Q
 from apps.user.models import User
 from rest_framework import serializers
 from apps.administrator.models import *
@@ -13,7 +14,7 @@ class InventorySerializer(serializers.ModelSerializer):
         model = Inventory
         fields = [
             "id",
-            "pk",
+            "pkid",
             "hospitalID",
             "hospital",
             "bloodUnits",
@@ -23,13 +24,35 @@ class InventorySerializer(serializers.ModelSerializer):
 
     def get_recentActivity(self, obj):
         message = ""
-        activity = InventoryActivity.objects.filter(bloodGroup=obj.bloodGroup).first()
+        activity = InventoryActivity.objects.filter(Q(bloodGroup=obj.bloodGroup) & Q(hospital=obj.hospital.pkid)).order_by("-pkid").first()
 
-        # print(f"[MESSAGE] :: {activity}")
+        print(f"[MESSAGE] :: {activity}")
 
         message = activity.activity if activity else ""
 
         return message
+
+
+class InventoryItemSerializer(serializers.ModelSerializer):
+    donorName = serializers.SerializerMethodField()
+    class Meta:
+        model = InventoryItem
+        fields = [
+            "id",
+            "pkid",
+            "bloodGroup",
+            "bloodUnits",
+            "appointmentID",
+            "hospitalID",
+            "donor",
+            "donorName",
+            "inventory",
+        ]
+
+    def get_donorName(self, obj):
+        donor = User.objects.get(pkid=obj.donor.pkid)
+
+        return donor.fullName
 
 
 class InventoryHistorySerializer(serializers.ModelSerializer):

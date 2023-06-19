@@ -5,6 +5,7 @@ from apps.common.models import TimeStampedUUIDModel
 
 class Appointment(TimeStampedUUIDModel):
     date = models.DateField(blank=True, null=True)    
+    appointmentID = models.CharField(max_length=255, null=True, blank=True)
     donor = models.ForeignKey(User, related_name="appointment_donor", blank=True, null=True, on_delete=models.CASCADE)
     hospital = models.ForeignKey(User, related_name="appointment_hospital", blank=True, null=True, on_delete=models.CASCADE)
     message = models.TextField(blank=True, null=True)
