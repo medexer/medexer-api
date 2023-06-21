@@ -81,7 +81,9 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://localhost:3333",
+    "http://localhost:3003",
+    "tauri://localhost",
+    "https://tauri.localhost",
     "https://medexer-hospital.vercel.app"
 ]
 
@@ -89,17 +91,22 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://localhost:3333",
+    "http://localhost:3003",
+    "tauri://localhost",
+    "https://tauri.localhost",
     "https://medexer-hospital.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_HEADERS=True
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",
     "http://localhost:3000",
     "http://localhost:3001",
-    "http://localhost:3333",
+    "http://localhost:3003",
+    "tauri://localhost",
+    "https://tauri.localhost",
     "https://medexer-hospital.vercel.app"
 ]
 
