@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*",]
 
 
 # Application definition
@@ -82,8 +82,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3003",
-    "tauri://localhost",
-    "https://tauri.localhost",
+    # "tauri://localhost",
+    # "https://tauri.localhost",
     "https://medexer-hospital.vercel.app"
 ]
 
@@ -92,22 +92,22 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3003",
-    "tauri://localhost",
-    "https://tauri.localhost",
+    # "tauri://localhost",
+    # "https://tauri.localhost",
     "https://medexer-hospital.vercel.app"
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True 
-CORS_ALLOW_ALL_HEADERS=True
+# CORS_ALLOW_ALL_ORIGINS = True 
+# CORS_ALLOW_ALL_HEADERS=True
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:8000",
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3003",
-    "tauri://localhost",
-    "https://tauri.localhost",
+    # "tauri://localhost",
+    # "https://tauri.localhost",
     "https://medexer-hospital.vercel.app"
 ]
 
