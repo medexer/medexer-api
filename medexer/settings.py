@@ -97,6 +97,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://medexer-hospital.vercel.app"
 ]
 
+CORS_ORIGIN_ALLOW = True
 CORS_ALLOW_CREDENTIALS = True
 # CORS_ALLOW_ALL_ORIGINS = True 
 # CORS_ALLOW_ALL_HEADERS=True
