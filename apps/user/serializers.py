@@ -33,6 +33,17 @@ class DonorAuthSerializer(serializers.ModelSerializer):
         user.save()
 
         return user
+    
+    
+class DonorProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "pkid",
+            "email",
+            "avatar",
+        ]
 
 
 class HospitalAuthSerializer(serializers.ModelSerializer):
