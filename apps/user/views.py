@@ -18,6 +18,7 @@ from apps.common.id_generator import (
 from .serializers import (
     DonorAuthSerializer,
     HospitalAuthSerializer,
+    DonorProfileUpdateSerializer,
     HospitalProfileUpdateSerializer,
 )
 
@@ -879,7 +880,7 @@ update_hospital_viewset = UpdateHospitalViewSet.as_view()
 
 class DonorUpdateProfileViewSet(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = DonorAuthSerializer
+    serializer_class = DonorProfileUpdateSerializer
 
     def put(self, request):
         try:
@@ -891,19 +892,19 @@ class DonorUpdateProfileViewSet(APIView):
 
                 data = {
                     "email": request.data["email"],
+                    "avatar": request.FILES["avatar"]
                 }
+                print("[AVATAR-PRESENT]")
+                # os.remove(user.avatar.path)
 
-                if len(request.FILES) > 0 and "avatar" in request.FILES:
-                    print("[AVATAR-PRESENT]")
-                    os.remove(user.avatar.path)
-                    data["avatar"] = request.FILES["avatar"]
+                # if len(request.FILES) > 0 and "avatar" in request.FILES:
 
                 serializer = self.serializer_class(user, data=data)
 
                 if serializer.is_valid():
                     serializer.save()
 
-                    if request.data["new_password"] != "":
+                    if request.data["new_password"]:
                         user.set_password = request.data["new_password"]
                         user.save()
 
@@ -961,15 +962,16 @@ class DonorUpdateProfileWithGoogleSigninViewSet(APIView):
         try:
             user = User.objects.get(pkid=request.user.pkid)
             
+            print(request.FILES)
+            
             data = {
                 "email": request.data["email"],
                 "password": request.user.password,
+                "avatar": request.FILES["avatar"]
             }
+            print("[AVATAR-PRESENT]")
 
-            if len(request.FILES) > 0 and "avatar" in request.FILES:
-                print("[AVATAR-PRESENT]")
-                os.remove(user.avatar.path)
-                data["avatar"] = request.FILES["avatar"]
+            # if len(request.FILES) > 0 and "avatar" in request.FILES:
 
             serializer = self.serializer_class(user, data=data)
 
