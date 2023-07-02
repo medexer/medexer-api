@@ -422,7 +422,7 @@ class DonorGoogleSignInViewSet(APIView):
                     serializer.save()
             
                     new_user = User.objects.filter(Q(email=request.data["email"].strip())).first()
-                    Profile.objects.create(user=new_user.pkid)
+                    Profile.objects.create(user=new_user)
 
                     new_user.is_email_login = True
                     new_user.save()
