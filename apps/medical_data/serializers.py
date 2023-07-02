@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import MedicalTest
 from apps.user.models import User
+from apps.profile.models import Profile
 from apps.donor.models import Appointment
 
 
@@ -52,3 +53,42 @@ class DonorMedicalHistorySerializer(serializers.ModelSerializer):
         
         return data
 
+
+class DonorSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = [
+            'pkid',
+            'fullName',
+            'email',
+            'avatar',
+            'donorID',
+            'is_donor',
+            'profile',
+        ]
+        
+    def get_profile(self, obj):
+        profile = Profile.objects.get(user=obj.pkid)
+        
+        data = {
+            "nationality": profile.nationality,
+            "gender": profile.gender,
+            "religion": profile.religion,
+            "address": profile.address,
+            "state": profile.state,
+            "city_province": profile.city_province,
+            "contact_number": profile.contact_number,
+        }
+        
+        return data
+    
+class DonorRecentAppointmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Appointment
+        fields = [
+            "pkid",
+            "appointmentID",
+            "date",
+            "donationDate",
+        ]
