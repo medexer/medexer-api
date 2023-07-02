@@ -5,6 +5,9 @@ from apps.common.media import hospital_image_path, avatar_path
 
 
 class Profile(TimeStampedUUIDModel):
+    nationality = models.CharField(max_length=255, blank=True, null=True)
+    gender = models.CharField(max_length=255, blank=True, null=True)
+    religion = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     state = models.CharField(max_length=255, blank=True, null=True)
     about_hospital = models.TextField(blank=True, null=True)
@@ -12,8 +15,9 @@ class Profile(TimeStampedUUIDModel):
     contact_number = models.CharField(max_length=255, blank=True, null=True)
     occupation = models.CharField(max_length=255, blank=True, null=True)
     marital_status = models.CharField(max_length=255, blank=True, null=True)
-    userAvatar = models.ImageField(upload_to=avatar_path, blank=True, null=True)
-    hospitalImage = models.ImageField(upload_to=hospital_image_path, default="/images/profile/hospital__1", blank=True, null=True)
+    userAvatar = models.ImageField(upload_to=avatar_path, default="/images/profile/avatar__1.png", blank=True, null=True)
+    is_profile_updated = models.BooleanField(default=False)
+    hospitalImage = models.ImageField(upload_to=hospital_image_path, default="/images/profile/hospital__1.jpg", blank=True, null=True)
     user = models.ForeignKey(User, related_name="profile_user", blank=True, null=True, on_delete=models.CASCADE)
     
     class Meta:

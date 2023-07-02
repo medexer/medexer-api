@@ -21,6 +21,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     state = models.CharField(max_length=255, blank=True, null=True)
     postalCode = models.CharField(max_length=255, blank=True, null=True)
     avatar =models.ImageField(upload_to=avatar_path, default='/images/profile/avatar__1.png', blank=True, null=True)
+    lastDonationDate = models.DateField(blank=True, null=True)
+    in_recovery = models.BooleanField(default=False)
     is_email_login = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

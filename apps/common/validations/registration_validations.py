@@ -65,15 +65,15 @@ def validate_hospital_kyb_capture(data, files):
         return False
     
     if len(files) == 0:
-        validation_message = "Hospital logo is required (.jpg, jpeg, .png)"
+        validation_message = "Hospital image is required (.jpg, jpeg, .png)"
         return False
 
-    if len(files) > 0 and not "logo" in files:
-        validation_message = "Hospital logo is required (.jpg, jpeg, .png)"
+    if len(files) > 0 and not "hospitalImage" in files:
+        validation_message = "Hospital image is required (.jpg, jpeg, .png)"
         return False
 
-    if len(files) > 0 and "logo" in files:
-        extension = files['logo'].name.split('.')[-1]
+    if len(files) > 0 and "hospitalImage" in files:
+        extension = files['hospitalImage'].name.split('.')[-1]
         if not extension or extension.lower() not in WHITELISTED_IMAGE_TYPES.keys():
             validation_message = "Invalid logo upload type, upload (.jpg, .jpeg, .png)"
             return False

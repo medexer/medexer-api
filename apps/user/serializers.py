@@ -1,5 +1,24 @@
 from .models import User
+from apps.profile.models import Profile
 from rest_framework import serializers
+
+
+class DonorProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = [
+            "id",
+            "pkid",
+            "nationality",
+            "gender",
+            "religion",
+            "address",
+            "state",
+            "city_province",
+            "contact_number",
+            "userAvatar",
+            "is_profile_updated",
+        ]
 
 
 class DonorAuthSerializer(serializers.ModelSerializer):
@@ -43,6 +62,24 @@ class DonorProfileUpdateSerializer(serializers.ModelSerializer):
             "pkid",
             "email",
             "avatar",
+        ]
+    
+    
+class DonorSignupProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = [
+            "id",
+            "pkid",
+            "user",
+            "nationality",
+            "gender",
+            "religion",
+            "address",
+            "state",
+            "city_province",
+            "contact_number",
+            "is_profile_updated",
         ]
 
 

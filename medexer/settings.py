@@ -42,6 +42,7 @@ LOCAL_APPS = [
     "apps.hospital",
     "apps.registration",
     "apps.administrator",
+    "apps.medical_data",
 ]
 
 THIRD_PARTY_APPS = [
@@ -144,7 +145,7 @@ SIMPLE_JWT = {
         "JWT",
     ),
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(weeks=30),
     "SIGNING_KEY": os.getenv("SIGNING_KEY"),
     "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
     "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),

@@ -9,6 +9,7 @@ from .models import KnowYourBusiness, KnowYourCustomer
 from apps.common.validations import registration_validations
 from .serializers import DonorKYCSerializer, HospitalKYBSerializer
 from apps.user.serializers import HospitalAuthSerializer, DonorAuthSerializer
+from apps.profile.models import Profile
 
 
 class DonorKYCViewSet(APIView):
@@ -19,22 +20,25 @@ class DonorKYCViewSet(APIView):
         """
         Allows for a donor to process his kyc
         """
-        if not registration_validations.validate_donor_kyc_capture(
-            request.data, request.FILES
-        ):
-            return Response(
-                data=CustomResponse(
-                    registration_validations.validation_message,
-                    "BAD REQUEST",
-                    400,
-                    None,
-                ),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # if not registration_validations.validate_donor_kyc_capture(
+        #     request.data, request.FILES
+        # ):
+        #     print(f"[DONOR-KYC-ERROR] :: ")
+        #     return Response(
+        #         data=CustomResponse(
+        #             registration_validations.validation_message,
+        #             "BAD REQUEST",
+        #             400,
+        #             None,
+        #         ),
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
 
         try:
             donor = User.objects.get(email=request.user.email)
             kyc = KnowYourCustomer.objects.filter(donorID=donor.donorID).first()
+
+            print(request.data)
 
             if kyc:
                 return Response(
@@ -47,11 +51,13 @@ class DonorKYCViewSet(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             data = {
-                "bloodGroup": request.data["bloodGroup"],
-                "genotype": request.data["genotype"],
+                "bloodGroup": request.data["bloodGroup"] if request.data["bloodGroup"] else None,
+                "genotype": request.data["genotype"] if request.data["genotype"] else None,
                 "haveDonatedBlood": request.data["haveDonatedBlood"],
                 "lastBloodDonationTime": request.data["lastBloodDonationTime"],
                 "hasTattos": request.data["hasTattos"],
+                "tobaccoUsage": request.data["tobaccoUsage"],
+                "isRecentVaccineRecipient": request.data["isRecentVaccineRecipient"],
                 "identificationType": request.data["identificationType"],
                 "documentUploadCover": request.FILES["documentUploadCover"],
                 "documentUploadRear": request.FILES["documentUploadRear"],
@@ -64,9 +70,9 @@ class DonorKYCViewSet(APIView):
 
             if serializer.is_valid():
                 serializer.save()
+                
                 donor.is_kyc_updated = True
                 donor.save()
-
 
                 return Response(
                     data=CustomResponse(
@@ -80,6 +86,7 @@ class DonorKYCViewSet(APIView):
                     ),
                     status=status.HTTP_201_CREATED,
                 )
+            print(f"[DONOR-KYC-E] :: {serializer.errors}")
             return Response(
                 data=CustomResponse(
                     "An error occured while uploading donor kyc.",
@@ -91,7 +98,7 @@ class DonorKYCViewSet(APIView):
             )
 
         except Exception as e:
-            print(f"[DONOR-KYC-ERROR] :: {e}")
+            print(f"[DONOR-KYC-ERROR] ::: {e}")
             return Response(
                 data=CustomResponse(
                     f"Failure occurred when uploading donor kyc. {e}",
@@ -128,11 +135,14 @@ class HospitalKYBViewSet(APIView):
             )
 
         try:
+            profile = Profile.objects.get(user=request.user.pkid)
             hospital = User.objects.get(hospitalID=request.user.hospitalID)
             kyc = KnowYourBusiness.objects.filter(
                 hospitalID=hospital.hospitalID
             ).first()
 
+            # print(f'[DATA] :: {request.data}')
+        
             if kyc:
                 return Response(
                     data=CustomResponse(
@@ -148,8 +158,12 @@ class HospitalKYBViewSet(APIView):
                 "websiteUrl": request.data["websiteUrl"]
                 if request.data["websiteUrl"]
                 else "",
-                "logo": request.FILES["logo"],
+                # "logo": request.FILES["logo"],
                 "address": request.data["address"],
+                "state": request.data["state"],
+                "city": request.data["city_province"],
+                "business_type": request.data["business_type"],
+                "incorporation_date": request.data["incorporation_date"],
                 "description": request.data["description"],
                 "identificationType": "CACCERTIFICATE",
                 "hospitalID": hospital.hospitalID,
@@ -161,7 +175,18 @@ class HospitalKYBViewSet(APIView):
             if serializer.is_valid():
                 serializer.save()
                 hospital.is_kyc_updated = True
+                hospital.city = request.data["city_province"]
+                hospital.state = request.data["state"]
+                hospital.address = request.data["address"]
                 hospital.save()
+                
+                profile.state = request.data["state"]
+                profile.address = request.data["address"]
+                profile.city_province = request.data["city_province"]
+                profile.about_hospital = request.data["description"]
+                profile.hospitalImage = request.FILES['hospitalImage']
+                profile.save()
+                
                 hospital_serializer = HospitalAuthSerializer(hospital)
 
                 return Response(
@@ -176,6 +201,8 @@ class HospitalKYBViewSet(APIView):
                     ),
                     status=status.HTTP_201_CREATED,
                 )
+                
+            print(f"[HOSPITAL-KYB-ERROR] :: {serializer.errors}")
             return Response(
                 data=CustomResponse(
                     "An error occured while uploading hospital kyb.",

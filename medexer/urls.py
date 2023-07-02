@@ -29,6 +29,7 @@ urlpatterns = (
         path('medexer/api/v1/profile/', include('apps.profile.urls')),
         path('medexer/api/v1/donor/', include('apps.donor.urls')),
         path('medexer/api/v1/hospital/', include('apps.hospital.urls')),
+        path('medexer/api/v1/medical-data/', include('apps.medical_data.urls')),
         path('medexer/api/v1/auth/refresh-token', jwt_views.TokenRefreshView.as_view(), name="jwt_refresh"),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

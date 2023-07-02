@@ -109,9 +109,17 @@ class AppointmentSerializer(serializers.ModelSerializer):
         data = {
             "id": donor.id,
             "pkid": donor.pkid,
+            "avatar": donor.avatar.url,
             "donorId": donor.donorID,
+            "email": donor.email,
             "fullName": donor.fullName,
             "bloodGroup": donorKyc.bloodGroup,
+            "haveDonatedBlood": donorKyc.haveDonatedBlood,
+            "lastBloodDonationTime": donorKyc.lastBloodDonationTime,
+            "tobaccoUsage": donorKyc.tobaccoUsage,
+            "isRecentVaccineRecipient": donorKyc.isRecentVaccineRecipient,
+            "hasTattos": donorKyc.hasTattos,
+            "created_at": donorKyc.created_at,
         }
 
         return data
