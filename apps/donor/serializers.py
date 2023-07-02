@@ -11,6 +11,8 @@ load_dotenv()
 
 class DonorAppointmentSerializer(serializers.ModelSerializer):
     hospitalInfo = serializers.SerializerMethodField()
+    hospitalProfile = serializers.SerializerMethodField()
+    centerGeoLocation = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
@@ -22,20 +24,53 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
             "donor",
             "message",
             "hospital",
+            "donationDate",
             "isDonated",
+            "isForAdult",
+            "visitRecipient",
             "hospitalInfo",
+            "hospitalProfile",
+            "centerGeoLocation",
             "created_at",
         ]
 
     def get_hospitalInfo(self, obj):
         hospital = User.objects.get(pkid=obj.hospital.pkid)
-
+        
         data = {
             "pkid": hospital.pkid,
             "hospitalName": hospital.hospitalName,
-            "location": hospital.location,
+            "location": f"{hospital.address}, {hospital.lga}, {hospital.state}",
             "email": hospital.email,
         }
+
+        return data
+    
+    def get_hospitalProfile(self, obj):
+        profile = Profile.objects.get(user=obj.hospital.pkid)
+
+        data = {
+            "address": profile.address if profile.address else None,
+            "state": profile.state if profile.state else None,
+            "about_hospital": profile.about_hospital if profile.about_hospital else None,
+            "city_province": profile.city_province if profile.city_province else None,
+            "contact_number": profile.contact_number if profile.contact_number else None,
+            "hospitalImage": profile.hospitalImage.url if profile.hospitalImage else None,
+        }
+        
+        return data
+
+    def get_centerGeoLocation(self, obj):
+        data = ""
+        gmaps = googlemaps.Client(key=os.getenv("GOOGLEMAP_APIKEY"))
+        center = User.objects.get(pkid=obj.hospital.pkid)
+
+        geocode_result = gmaps.geocode(
+            f"{center.address}, {center.postalCode}, {center.lga}, {center.state}"
+        )
+        
+        for result in geocode_result:
+            data = result["geometry"]["location"]
 
         return data
 

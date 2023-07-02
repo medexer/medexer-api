@@ -7,7 +7,9 @@ from .models import Inventory
 from apps.user.models import User
 from . import serializers
 from .models import *
-from django.db.models import Q
+from datetime import datetime
+from django.db.models.functions import Cast
+from django.db.models import Q, IntegerField
 from apps.administrator.models import *
 from apps.registration.models import KnowYourCustomer
 from apps.donor.models import Appointment, DonationHistory
@@ -210,7 +212,7 @@ class HospitalInventoryItemViewSet(generics.GenericAPIView):
 
     def get(self, request, bloodGroup):
         try:
-            inventoryItems = InventoryItem.objects.filter(Q(hospitalID=request.user.hospitalID) & Q(bloodGroup=bloodGroup))
+            inventoryItems = InventoryItem.objects.annotate(text_int=Cast('bloodUnits', output_field=IntegerField())).filter(Q(hospitalID=request.user.hospitalID) & Q(bloodGroup=bloodGroup) & Q(bloodUnits__gte=0))
 
             serializer = self.serializer_class(instance=inventoryItems, many=True)
 
@@ -338,8 +340,9 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
             }
 
             instance = Appointment.objects.get(pkid=pkid)
+            donor = User.objects.get(pkid=instance.donor)
             donorProfile = KnowYourCustomer.objects.get(donor=instance.donor)
-            inventory = Inventory.objects.filter(Q(hospital=instance.hospital) & Q(bloodGroup=donorProfile.bloodGroup)).first()
+            inventory = Inventory.objects.filter(Q(hospital=instance.hospital) & Q(bloodGroup=request.data['bloodGroup'])).first()
             
             serializer = self.serializer_class(instance, data=data)
            
@@ -349,9 +352,18 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                 inventory.bloodUnits = inventory.bloodUnits + int(request.data['pints'])
 
                 inventory.save()
+                
+                donorProfile.bloodGroup = request.data['bloodGroup']
+                
+                donorProfile.save()
+                
+                donor.in_recovery = True
+                donor.lastDonationDate = datetime.now().strftime('%Y/%m/%d')
+                
+                donor.save()
 
                 InventoryItem.objects.create(
-                    bloodGroup=donorProfile.bloodGroup,
+                    bloodGroup=request.data['bloodGroup'],
                     bloodUnits=request.data['pints'],
                     appointmentID=instance.appointmentID,
                     hospitalID=instance.hospital.hospitalID,
@@ -456,7 +468,7 @@ class HospitalDonationPaymentViewSet(generics.GenericAPIView):
             data = {
                 "email": hospital.email,
                 "amount": (7650 * 100),
-                "callback_url": "http://localhost:3000/payment/verify",
+                "callback_url": "http://localhost:3003/payment/verify",
                 "metadata": json.dumps({
                     "cart_id": donation.pkid,
                     "custom_fields": [

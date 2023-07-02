@@ -15,6 +15,7 @@ urlpatterns = [
     path("auth/donor/forgot-password", views.donor_forgotpassword_viewset, name="donor-forgot-password"),
     path("auth/donor/reset-password", views.donor_resetpassword_viewset, name="donor-reset-password"),
     path("auth/donor/update-profile", views.donor_update_profile_viewset, name="donor-update-profile"),
+    path("auth/donor/update-signup-profile", views.donor_update_signup_profile_viewset, name="donor-update-signup-profile"),
     path("auth/donor/update-google-signin-profile", views.donor_update_profile_with_google_signin_viewset, name="donor-update-google-signin-profile"),
     path("auth/hospital/signup", views.hospital_signup_viewset, name="hospital-signup"),
     path("auth/hospital/signin", views.hospital_signin_viewset, name="hospital-signin"),
