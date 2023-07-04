@@ -422,7 +422,7 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                 donorProfile.save()
                 
                 donor.in_recovery = True
-                donor.lastDonationDate = datetime.now().strftime('%Y/%m/%d')
+                donor.lastDonationDate = datetime.now().strftime('%Y-%m-%d')
                 
                 donor.save()
 
