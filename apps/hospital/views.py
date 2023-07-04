@@ -432,7 +432,7 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                     appointmentID=instance.appointmentID,
                     hospitalID=instance.hospital.hospitalID,
                     donor=donorProfile.donor,
-                    inventory=inventory.pkid,
+                    inventory=inventory,
                 )
                 Notification.objects.create(
                     notificationType="APPOINTMENT",
