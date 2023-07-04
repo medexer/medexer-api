@@ -431,7 +431,7 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                     bloodUnits=request.data['pints'],
                     appointmentID=instance.appointmentID,
                     hospitalID=instance.hospital.hospitalID,
-                    donor=donorProfile.donor.pkid,
+                    donor=donorProfile.donor,
                     inventory=inventory.pkid,
                 )
                 Notification.objects.create(
