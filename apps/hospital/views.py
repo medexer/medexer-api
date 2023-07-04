@@ -436,13 +436,13 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                 )
                 Notification.objects.create(
                     notificationType="APPOINTMENT",
-                    author=request.user.pkid,
-                    recipient=instance.donor.pkid,
+                    author=request.user,
+                    recipient=instance.donor,
                     title=f"Donation Alert",
                     message=f"You donation with {instance.hospital.hospitalName} has been successfully processed. We appreciate your patience as we handle your incentives within two working days.",
                 )
                 DonationHistory.objects.create(
-                    donor=instance.donor.pkid,
+                    donor=instance.donor,
                     message=f"Donated {instance.pints} pints of blood on {instance.created_at}"
                 )
 
