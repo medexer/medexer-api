@@ -8,6 +8,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'pkid',
+            'latitude',
+            'longitude',
             'address',
             'state',
             'about_hospital',
@@ -18,4 +20,15 @@ class ProfileSerializer(serializers.ModelSerializer):
             'userAvatar',
             'hospitalImage',
             'user',
+        ]
+
+
+class DonorProfileLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = [
+            'id',
+            'pkid',
+            'latitude',
+            'longitude',
         ]

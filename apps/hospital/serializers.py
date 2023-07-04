@@ -3,9 +3,34 @@ from django.db.models import Q
 from apps.user.models import User
 from rest_framework import serializers
 from apps.administrator.models import *
+from apps.profile.models import Profile
 from apps.registration.models import KnowYourCustomer
 from apps.donor.models import Appointment, DonationHistory
 
+
+class DonorSearchSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+    class Meta:
+        model = User
+        fields = [
+            'pkid',
+            'fullName',
+            'email',
+            'avatar',
+            'profile'
+        ]
+
+    def get_profile(self, obj):
+        profile = Profile.objects.get(user=obj.pkid)
+        
+        data = {
+            "latitude": profile.latitude,
+            "longitude": profile.longitude,
+            "bloodGroup": profile.bloodGroup,
+            "contact_number": profile.contact_number,
+            "address": f"{profile.address}, {profile.state}, {profile.city_province}",
+        }
+        return data
 
 class InventorySerializer(serializers.ModelSerializer):
     recentActivity = serializers.SerializerMethodField()

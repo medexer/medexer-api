@@ -1,22 +1,24 @@
 import os, requests, json
+from dotenv import load_dotenv
 from rest_framework import generics, status
+from django.db.models.functions import Cast
+from django.db.models import Q, IntegerField
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+
 from . import serializers
 from .models import Inventory
 from apps.user.models import User
 from . import serializers
 from .models import *
 from datetime import datetime
-from django.db.models.functions import Cast
-from django.db.models import Q, IntegerField
 from apps.administrator.models import *
+from apps.profile.models import *
 from apps.registration.models import KnowYourCustomer
 from apps.donor.models import Appointment, DonationHistory
 from apps.common.validations import hospital_validations
 from apps.common.id_generator import complaint_id_generator
 from apps.common.custom_response import CustomResponse, CurrentTimeStamp
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -52,6 +54,68 @@ class DashboardViewSet(generics.GenericAPIView):
 
 
 dashboard_viewset = DashboardViewSet.as_view()
+
+
+class DonorSearchViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.DonorSearchSerializer
+
+    def get(self, request, query):
+        try:
+            query_set = []
+            
+            inventories = Inventory.objects.filter(hospital=request.user.pkid)
+            profiles = Profile.objects.filter(
+                Q(user__fullName__icontains=query) 
+                | 
+                Q(state__icontains=query) 
+                |
+                Q(city_province__icontains=query)
+                |
+                Q(bloodGroup__icontains=query)
+            )
+            
+            for item in inventories:
+                for profile in profiles:
+                    if profile.bloodGroup and item.bloodGroup == profile.bloodGroup:    
+                        if item.bloodUnits < 20:
+                            if profile.is_profile_updated and profile.latitude:
+                                donor = User.objects.get(pkid=profile.user.pkid)
+                                
+                                if donor.is_donor:
+                                    query_set.append(donor)
+                    else:
+                        if profile.is_profile_updated and profile.latitude:
+                            donor = User.objects.get(pkid=profile.user.pkid)
+                            
+                            if donor.is_donor:
+                                query_set.append(donor)    
+
+            serializer = self.serializer_class(query_set, many=True)
+            
+            return Response(
+                data=CustomResponse(
+                    f"Donor search successfull.",
+                    "SUCCESS",
+                    200,
+                    serializer.data,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[DONOR-SEARCH-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while searhing donors. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_search_viewset = DonorSearchViewSet.as_view()
 
 
 class InventoryItemHistoryViewSet(generics.GenericAPIView):

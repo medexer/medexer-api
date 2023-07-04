@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from . import serializers
 from .models import Profile
+from apps.user.serializers import DonorProfileSerializer
 from apps.common.custom_response import CustomResponse
 
 
@@ -95,3 +96,57 @@ class HospitalProfileViewSet(APIView):
             
             
 hospital_profile_viewset = HospitalProfileViewSet.as_view()
+
+
+class DonorProfileLocationViewSet(APIView):
+    serializer_class = serializers.DonorProfileLocationSerializer
+    
+    def put(self, request):
+        """
+        Allows for a donor to update their profile location
+        """
+        try:
+            data = {
+                "latitude": request.data['latitude'],
+                "longitude": request.data["longitude"],
+            }
+
+            instance = Profile.objects.get(user=request.user.pkid)
+            
+            serializer = self.serializer_class(instance, data=data)
+           
+            if serializer.is_valid():
+                serializer.save()
+
+                return Response(
+                    data=CustomResponse(
+                        "Donor profile location updated successfully.",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating donor profile location.",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[UPDATE-DONOR-PROFILE-LOCATION-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating donor profile location. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+            
+donor_profile_location_viewset = DonorProfileLocationViewSet.as_view()

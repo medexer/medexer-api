@@ -21,6 +21,7 @@ from .serializers import (
     HospitalAuthSerializer,
     DonorProfileUpdateSerializer,
     HospitalProfileUpdateSerializer,
+    DonorProfileAvatarUpdateSerializer,
 )
 from apps.profile.models import Profile
 
@@ -331,7 +332,6 @@ class DonorSignInViewSet(APIView):
 
         try:
             user = User.objects.filter(Q(email=request.data["email"].strip())).first()
-            profile = Profile.objects.filter(user=user.pkid).first()
 
             if user is None:
                 return Response(
@@ -353,6 +353,8 @@ class DonorSignInViewSet(APIView):
                     ),
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+                
+            profile = Profile.objects.filter(user=user.pkid).first()
 
             refresh__token = RefreshToken.for_user(user)
             access__token = "Bearer " + str(refresh__token.access_token)
@@ -921,7 +923,7 @@ class DonorUpdateProfileViewSet(APIView):
 
                 data = {
                     "email": request.data["email"],
-                    "avatar": request.FILES["avatar"]
+                    # "avatar": request.FILES["avatar"]
                 }
 
                 serializer = self.serializer_class(user, data=data)
@@ -931,6 +933,7 @@ class DonorUpdateProfileViewSet(APIView):
                 if serializer.is_valid():
                     serializer.save()
                     
+                    profile.dateOfBirth = request.data['dateOfBirth']
                     profile.nationality = request.data['nationality']
                     profile.gender = request.data['gender']
                     profile.religion = request.data['religion']
@@ -993,6 +996,59 @@ class DonorUpdateProfileViewSet(APIView):
 donor_update_profile_viewset = DonorUpdateProfileViewSet.as_view()
 
 
+class DonorUpdateProfileAvatarViewSet(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = DonorProfileAvatarUpdateSerializer
+
+    def put(self, request):
+        try:
+            user = User.objects.get(pkid=request.user.pkid)
+
+            data = {
+                "avatar": request.FILES["avatar"]
+            }
+
+            user_serializer = DonorAuthSerializer(user)
+            serializer = self.serializer_class(user, data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+
+                return Response(
+                    data=CustomResponse(
+                        "Donor profile avatar updated successfully.",
+                        "SUCCESS",
+                        200,
+                        user_serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            print(f"[ERROR] :: {serializer.errors}")
+            return Response(
+                data=CustomResponse(
+                    "An error occured while updating donor profile avatar.",
+                    "ERROR",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[UPDATE-DONOR-PROFILE-AVATAR-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating donor profile avatar. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+donor_update_profile_avatar_viewset = DonorUpdateProfileAvatarViewSet.as_view()
+
+
 class DonorUpdateSignupProfileViewSet(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = DonorProfileSerializer
@@ -1003,6 +1059,7 @@ class DonorUpdateSignupProfileViewSet(APIView):
 
             data = {
                 "is_profile_updated": True,
+                "dateOfBirth": request.data["dateOfBirth"],
                 "nationality": request.data["nationality"],
                 "gender": request.data["gender"],
                 "religion": request.data["religion"],
@@ -1064,7 +1121,7 @@ class DonorUpdateProfileWithGoogleSigninViewSet(APIView):
             data = {
                 "email": request.data["email"],
                 # "password": request.user.password,
-                "avatar": request.FILES["avatar"]
+                # "avatar": request.FILES["avatar"]
             }
 
             serializer = self.serializer_class(user, data=data)
@@ -1074,6 +1131,7 @@ class DonorUpdateProfileWithGoogleSigninViewSet(APIView):
             if serializer.is_valid():
                 serializer.save()
 
+                profile.dateOfBirth = request.data['dateOfBirth']
                 profile.nationality = request.data['nationality']
                 profile.gender = request.data['gender']
                 profile.religion = request.data['religion']

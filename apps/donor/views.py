@@ -9,6 +9,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from .tasks import send_contact_us_mail
+from apps.profile.models import Profile
+from apps.hospital.models import Inventory
 from apps.administrator.models import Notification
 from rest_framework.permissions import IsAuthenticated
 from apps.common.custom_response import CustomResponse
@@ -109,19 +111,43 @@ class DonationCentersViewSet(generics.GenericAPIView):
         Allows for a donor to fetch donation centers
         """
         try:
-            centers = User.objects.filter(is_hospital=True)
+            query_set = []
+            profile = Profile.objects.get(user=request.user.pkid)
+            centers = User.objects.filter(Q(is_hospital=True) & Q(is_kyc_updated=True))
+            
+            if profile.bloodGroup is not None:
+                for center in centers:
+                    inventory = Inventory.objects.get(Q(hospital=center.pkid) & Q(bloodGroup=profile.bloodGroup))
+                    
+                    if inventory.bloodUnits < 20:
+                        query_set.append(center)
 
-            serializer = self.serializer_class(centers, many=True)
+                # serializer = self.serializer_class(centers, many=True)
+                serializer = self.serializer_class(query_set, many=True)
 
-            return Response(
-                data=CustomResponse(
-                    "Donation centers fetched successfully",
-                    "SUCCESS",
-                    200,
-                    serializer.data,
-                ),
-                status=status.HTTP_200_OK,
-            )
+                print('[CROSS-MATCH-SUCCESS]')
+                return Response(
+                    data=CustomResponse(
+                        "Donation centers fetched successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                serializer = self.serializer_class(centers, many=True)
+
+                print('- [CROSS-MATCH-SUCCESS]')
+                return Response(
+                    data=CustomResponse(
+                        "Donation centers fetched successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
 
         except Exception as e:
             print(f"[FETCH-DONATION-CENTERS-ERROR] :: {e}")
@@ -151,7 +177,7 @@ class DonationCentersLocationDataViewSet(generics.GenericAPIView):
 
             gmaps = googlemaps.Client(key=os.getenv("GOOGLEMAP_APIKEY"))
 
-            donation_centers = User.objects.filter(is_hospital=True)
+            donation_centers = User.objects.filter(Q(is_hospital=True) & Q(is_kyc_updated=True))
             # _geocode_result = gmaps.geocode("VV28+HM9, 930103, Jos, Plateau")
 
             for center in donation_centers:

@@ -1,8 +1,9 @@
+import os, googlemaps
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-
+from dotenv import load_dotenv
 from apps.user.models import User
 from apps.common.custom_response import CustomResponse
 from .models import KnowYourBusiness, KnowYourCustomer
@@ -11,6 +12,7 @@ from .serializers import DonorKYCSerializer, HospitalKYBSerializer
 from apps.user.serializers import HospitalAuthSerializer, DonorAuthSerializer
 from apps.profile.models import Profile
 
+load_dotenv()
 
 class DonorKYCViewSet(APIView):
     serializer_class = DonorKYCSerializer
@@ -135,6 +137,8 @@ class HospitalKYBViewSet(APIView):
             )
 
         try:
+            gmaps = googlemaps.Client(key=os.getenv("GOOGLEMAP_APIKEY"))
+            
             profile = Profile.objects.get(user=request.user.pkid)
             hospital = User.objects.get(hospitalID=request.user.hospitalID)
             kyc = KnowYourBusiness.objects.filter(
@@ -174,12 +178,25 @@ class HospitalKYBViewSet(APIView):
 
             if serializer.is_valid():
                 serializer.save()
+                
+                geoData = ""
+                geocode_result = gmaps.geocode(
+                    f"{request.data['address']}, {hospital.postalCode}, {request.data['city_province']}, {request.data['state']}"
+                )
+
+                for result in geocode_result:
+                    geoData = result["geometry"]["location"]
+                
+                print(f'[DATA]  ::  {geoData}')
+                
                 hospital.is_kyc_updated = True
                 hospital.city = request.data["city_province"]
                 hospital.state = request.data["state"]
                 hospital.address = request.data["address"]
                 hospital.save()
                 
+                profile.latitude = geoData['lat']
+                profile.longitude = geoData['lng']
                 profile.state = request.data["state"]
                 profile.address = request.data["address"]
                 profile.city_province = request.data["city_province"]

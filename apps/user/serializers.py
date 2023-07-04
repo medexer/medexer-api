@@ -9,6 +9,7 @@ class DonorProfileSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "pkid",
+            "dateOfBirth",
             "nationality",
             "gender",
             "religion",
@@ -61,6 +62,16 @@ class DonorProfileUpdateSerializer(serializers.ModelSerializer):
             "id",
             "pkid",
             "email",
+            # "avatar",
+        ]
+    
+    
+class DonorProfileAvatarUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "pkid",
             "avatar",
         ]
     

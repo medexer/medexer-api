@@ -36,11 +36,12 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
 
     def get_hospitalInfo(self, obj):
         hospital = User.objects.get(pkid=obj.hospital.pkid)
+        hospitalProfile = Profile.objects.get(user=obj.hospital.pkid)
         
         data = {
             "pkid": hospital.pkid,
             "hospitalName": hospital.hospitalName,
-            "location": f"{hospital.address}, {hospital.lga}, {hospital.state}",
+            "location": f"{hospitalProfile.address}, {hospitalProfile.city_province}, {hospitalProfile.state}",
             "email": hospital.email,
         }
 
