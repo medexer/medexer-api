@@ -6,9 +6,12 @@ from apps.common.media import hospital_image_path, avatar_path
 
 
 class Profile(TimeStampedUUIDModel):
+    dateOfBirth = models.DateField(blank=True, null=True)
     nationality = models.CharField(max_length=255, blank=True, null=True)
     gender = models.CharField(max_length=255, blank=True, null=True)
     religion = models.CharField(max_length=255, blank=True, null=True)
+    latitude = models.CharField(max_length=255, blank=True, null=True)
+    longitude = models.CharField(max_length=255, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
     state = models.CharField(max_length=255, blank=True, null=True)
     about_hospital = models.TextField(blank=True, null=True)
