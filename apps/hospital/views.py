@@ -404,7 +404,7 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
             }
 
             instance = Appointment.objects.get(pkid=pkid)
-            donor = User.objects.get(pkid=instance.donor)
+            donor = User.objects.get(pkid=instance.donor.pkid)
             donorProfile = KnowYourCustomer.objects.get(donor=instance.donor.pkid)
             inventory = Inventory.objects.filter(Q(hospital=instance.hospital.pkid) & Q(bloodGroup=request.data['bloodGroup'])).first()
             
