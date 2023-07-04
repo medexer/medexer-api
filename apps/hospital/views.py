@@ -405,8 +405,8 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
 
             instance = Appointment.objects.get(pkid=pkid)
             donor = User.objects.get(pkid=instance.donor)
-            donorProfile = KnowYourCustomer.objects.get(donor=instance.donor)
-            inventory = Inventory.objects.filter(Q(hospital=instance.hospital) & Q(bloodGroup=request.data['bloodGroup'])).first()
+            donorProfile = KnowYourCustomer.objects.get(donor=instance.donor.pkid)
+            inventory = Inventory.objects.filter(Q(hospital=instance.hospital.pkid) & Q(bloodGroup=request.data['bloodGroup'])).first()
             
             serializer = self.serializer_class(instance, data=data)
            
@@ -431,18 +431,18 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                     bloodUnits=request.data['pints'],
                     appointmentID=instance.appointmentID,
                     hospitalID=instance.hospital.hospitalID,
-                    donor=donorProfile.donor,
-                    inventory=inventory,
+                    donor=donorProfile.donor.pkid,
+                    inventory=inventory.pkid,
                 )
                 Notification.objects.create(
                     notificationType="APPOINTMENT",
-                    author=request.user,
-                    recipient=instance.donor,
+                    author=request.user.pkid,
+                    recipient=instance.donor.pkid,
                     title=f"Donation Alert",
                     message=f"You donation with {instance.hospital.hospitalName} has been successfully processed. We appreciate your patience as we handle your incentives within two working days.",
                 )
                 DonationHistory.objects.create(
-                    donor=instance.donor,
+                    donor=instance.donor.pkid,
                     message=f"Donated {instance.pints} pints of blood on {instance.created_at}"
                 )
 
