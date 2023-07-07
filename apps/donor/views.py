@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from django.db.models import Q
 from apps.user.models import User
 from django.shortcuts import render
+from datetime import datetime, timedelta
 from rest_framework import generics, status
 from rest_framework.response import Response
 
@@ -54,38 +55,85 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
 
     def post(self, request):
         try:
-            data = {
-                "donor": request.user.pkid,
-                "message": request.data["message"],
-                "hospital": request.data["hospital"],
-                "isForAdult": request.data["isForAdult"],
-                "visitRecipient": request.data["visitRecipient"],
-                "appointmentID": appointment_id_generator(),
-            }
+            # donor = User.objects.get(pkid=request.user.pkid)
+            last_appointment = Appointment.objects.filter(Q(donor=request.user.pkid)).first()
+            
+            if last_appointment:
+                if last_appointment and datetime.now().date() > (last_appointment.donationDate + timedelta(days=3*30)):
+                    data = {
+                        "donor": request.user.pkid,
+                        "message": request.data["message"],
+                        "hospital": request.data["hospital"],
+                        "isForAdult": request.data["isForAdult"],
+                        "getNotifiedOnBloodUse": request.data["getNotifiedOnBloodUse"],
+                        "appointmentID": appointment_id_generator(),
+                    }
 
-            serializer = self.serializer_class(data=data)
+                    serializer = self.serializer_class(data=data)
 
-            if serializer.is_valid():
-                serializer.save()
+                    if serializer.is_valid():
+                        serializer.save()
 
+                        return Response(
+                            data=CustomResponse(
+                                "Donor appointment created successfully",
+                                "SUCCESS",
+                                200,
+                                serializer.data,
+                            ),
+                            status=status.HTTP_200_OK,
+                        )
+                    return Response(
+                        data=CustomResponse(
+                            f"An error occured while generating appointment",
+                            "BAD REQUEST",
+                            400,
+                            serializer.errors,
+                        ),
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
                 return Response(
                     data=CustomResponse(
-                        "Donor appointment created successfully",
-                        "SUCCESS",
-                        200,
-                        serializer.data,
+                        f"You are still in you recovery period, please try again after three months from your last donation which is {last_appointment.donationDate}",
+                        "BAD REQUEST",
+                        400,
+                        None,
                     ),
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-            return Response(
-                data=CustomResponse(
-                    f"An error occured while generating appointment",
-                    "BAD REQUEST",
-                    400,
-                    serializer.errors,
-                ),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            else:
+                data = {
+                    "donor": request.user.pkid,
+                    "message": request.data["message"],
+                    "hospital": request.data["hospital"],
+                    "isForAdult": request.data["isForAdult"],
+                    "getNotifiedOnBloodUse": request.data["getNotifiedOnBloodUse"],
+                    "appointmentID": appointment_id_generator(),
+                }
+
+                serializer = self.serializer_class(data=data)
+
+                if serializer.is_valid():
+                    serializer.save()
+
+                    return Response(
+                        data=CustomResponse(
+                            "Donor appointment created successfully",
+                            "SUCCESS",
+                            200,
+                            serializer.data,
+                        ),
+                        status=status.HTTP_200_OK,
+                    )
+                return Response(
+                    data=CustomResponse(
+                        f"An error occured while generating appointment",
+                        "BAD REQUEST",
+                        400,
+                        serializer.errors,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         except Exception as e:
             print(f"[CREATE-APPOINTMENT-ERROR] :: {e}")
             return Response(

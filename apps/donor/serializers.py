@@ -27,7 +27,7 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
             "donationDate",
             "isDonated",
             "isForAdult",
-            "visitRecipient",
+            "getNotifiedOnBloodUse",
             "hospitalInfo",
             "hospitalProfile",
             "centerGeoLocation",
@@ -43,7 +43,7 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
             "hospitalName": hospital.hospitalName,
             "location": f"{hospitalProfile.address}, {hospitalProfile.city_province}, {hospitalProfile.state}",
             "email": hospital.email,
-        }
+        } 
 
         return data
     
@@ -53,6 +53,7 @@ class DonorAppointmentSerializer(serializers.ModelSerializer):
         data = {
             "address": profile.address if profile.address else None,
             "state": profile.state if profile.state else None,
+            "hospitalLogo": profile.hospitalLogo.url,
             "about_hospital": profile.about_hospital if profile.about_hospital else None,
             "city_province": profile.city_province if profile.city_province else None,
             "contact_number": profile.contact_number if profile.contact_number else None,
@@ -112,6 +113,7 @@ class DonationCenterSerializer(serializers.ModelSerializer):
             "city_province": profile.city_province if profile.city_province else None,
             "contact_number": profile.contact_number if profile.contact_number else None,
             "hospitalImage": profile.hospitalImage.url if profile.hospitalImage else None,
+            "hospitalLogo": profile.hospitalLogo.url if profile.hospitalLogo else None,
         }
         
         return data

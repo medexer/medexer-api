@@ -13,8 +13,10 @@ class KnowYourCustomer(TimeStampedUUIDModel):
     isRecentVaccineRecipient = models.BooleanField(default=False)
     hasTattos = models.BooleanField(default=False)
     identificationType = models.CharField(max_length=255, choices=IdentificationType.choices, blank=True, null=True)
-    documentUploadCover =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
-    documentUploadRear =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
+    documentUploadCover =models.ImageField(upload_to="Medexer-API/media/kyc/", blank=True, null=True)
+    documentUploadRear =models.ImageField(upload_to="Medexer-API/media/kyc", blank=True, null=True)
+    # documentUploadCover =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
+    # documentUploadRear =models.ImageField(upload_to=kyc_document_path, blank=True, null=True)
     donorID = models.CharField(max_length=255, blank=True, null=True)
     donor = models.ForeignKey(User, related_name="kyc_donor", blank=True, null=True, on_delete=models.CASCADE)
     

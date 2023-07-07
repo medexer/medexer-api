@@ -19,6 +19,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'marital_status',
             'userAvatar',
             'hospitalImage',
+            'hospitalLogo',
             'user',
         ]
 

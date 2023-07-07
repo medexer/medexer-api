@@ -35,10 +35,12 @@ class DonorMedicalHistorySerializer(serializers.ModelSerializer):
         
     def get_hospitalProfile(self, obj):
         hospital = User.objects.get(pkid=obj.author.pkid)
+        profile = Profile.objects.get(user=obj.author.pkid)
         
         data = {
             "email": hospital.email,
             "hospitalName": hospital.hospitalName,
+            "hospitalLogo": profile.hospitalLogo.url,
         }
         
         return data
@@ -74,6 +76,7 @@ class DonorSerializer(serializers.ModelSerializer):
         data = {
             "nationality": profile.nationality,
             "gender": profile.gender,
+            "userAvatar": profile.userAvatar.url,
             "religion": profile.religion,
             "address": profile.address,
             "state": profile.state,

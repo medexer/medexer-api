@@ -1,4 +1,4 @@
-import os
+import os, cloudinary
 from django.shortcuts import render
 from django.db.models import Q
 from rest_framework import status
@@ -24,6 +24,7 @@ from .serializers import (
     DonorProfileAvatarUpdateSerializer,
 )
 from apps.profile.models import Profile
+from apps.common.id_generator import avatar_id_generator
 
 
 
@@ -557,6 +558,58 @@ class DonorForgotPasswordViewSet(APIView):
 donor_forgotpassword_viewset = DonorForgotPasswordViewSet.as_view()
 
 
+class HospitalForgotPasswordViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def put(self, request):
+        """
+        Allows for a donor to generate a forgot password token
+        """
+        if not auth_validations.validate_donor_forgotpassword(request.data):
+            return Response(
+                data=CustomResponse(
+                    auth_validations.validation_message,
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.filter(Q(email=request.data["email"]) & Q(hospitalID=request.data['hospitalID'])).first()
+
+            user.otp = otp_id_generator()
+            user.save()
+
+            # send_forgotpassword_mail.delay(user.email, user.otp)
+            send_forgotpassword_mail(user.email, user.otp)
+
+            return Response(
+                data=CustomResponse(
+                    "Email successfully sent",
+                    "SUCCESS",
+                    200,
+                    None,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[HOSPITAL-FORGOT-PASSWORD-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"Failure occurred during hospital forgot password. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+hospital_forgotpassword_viewset = HospitalForgotPasswordViewSet.as_view()
+
+
 class DonorResetPasswordViewSet(APIView):
     serializer_class = DonorAuthSerializer
 
@@ -605,6 +658,56 @@ class DonorResetPasswordViewSet(APIView):
 
 
 donor_resetpassword_viewset = DonorResetPasswordViewSet.as_view()
+
+
+class HospitalResetPasswordViewSet(APIView):
+    serializer_class = DonorAuthSerializer
+
+    def put(self, request):
+        """
+        Allows for a donor to generate a forgot password token
+        """
+        if not auth_validations.validate_donor_resetpassword(request.data):
+            return Response(
+                data=CustomResponse(
+                    auth_validations.validation_message,
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(otp=request.data["otp"])
+
+            user.set_password(request.data["newPassword"])
+            user.otp = None
+            user.save()
+
+            return Response(
+                data=CustomResponse(
+                    "Password reset successfully",
+                    "SUCCESS",
+                    200,
+                    None,
+                ),
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            print(f"[HOSPITAL-RESET-PASSWORD-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"Failure occurred during hospital reset password. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+hospital_resetpassword_viewset = HospitalResetPasswordViewSet.as_view()
 
 
 class DonorSignoutViewSet(APIView):
@@ -1002,24 +1105,36 @@ class DonorUpdateProfileAvatarViewSet(APIView):
 
     def put(self, request):
         try:
-            user = User.objects.get(pkid=request.user.pkid)
+            profile = Profile.objects.get(user=request.user.pkid)
 
             data = {
-                "avatar": request.FILES["avatar"]
+                # "userAvatar": request.FILES["avatar"]
             }
 
-            user_serializer = DonorAuthSerializer(user)
-            serializer = self.serializer_class(user, data=data)
+            profile_serializer = DonorProfileSerializer(profile)
+            serializer = self.serializer_class(profile, data=data)
 
             if serializer.is_valid():
-                serializer.save()
+                print(f"[OLD-FILE-URL]  :: {profile.userAvatarPublicId}")
+                delete_old_file = cloudinary.uploader.destroy(profile.userAvatarPublicId, resource_type="raw")
+                
+                print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                print(f"[OLD-FILE-PUBLIC-URL]  :: {profile.userAvatarPublicId}")
+                
+                file = cloudinary.uploader.upload_large(
+                    request.FILES["avatar"], folder="Medexer-API/media/user-avatar/"
+                )
+                print(f"[NEW-FILE]  :: {file}")
+                
+                serializer.save(userAvatar=file['secure_url'], userAvatarPublicId=file['public_id'])
+                # serializer.save(userAvatar=file['secure_url'], userAvatarPublicId=file['public_id'].split('user-avatar/')[1].split('.')[0])
 
                 return Response(
                     data=CustomResponse(
                         "Donor profile avatar updated successfully.",
                         "SUCCESS",
                         200,
-                        user_serializer.data,
+                        profile_serializer.data,
                     ),
                     status=status.HTTP_200_OK,
                 )

@@ -11,7 +11,7 @@ class Appointment(TimeStampedUUIDModel):
     message = models.TextField(blank=True, null=True)
     pints = models.CharField(max_length=255, default="0", blank=True, null=True)
     donationDate = models.DateField(blank=True, null=True)
-    visitRecipient = models.BooleanField(default=False)
+    getNotifiedOnBloodUse = models.BooleanField(default=False)
     isForAdult = models.BooleanField(default=False)
     isPaid = models.BooleanField(default=False)
     isDonated = models.BooleanField(default=False)
