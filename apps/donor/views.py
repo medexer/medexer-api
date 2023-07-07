@@ -85,7 +85,7 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
                         )
                     return Response(
                         data=CustomResponse(
-                            f"An error occured while generating appointment",
+                            f"An error occured while booking appointment",
                             "BAD REQUEST",
                             400,
                             serializer.errors,
@@ -95,7 +95,7 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
                 return Response(
                     data=CustomResponse(
                         f"You are still in you recovery period, please try again after three months from your last donation which is {last_appointment.donationDate}",
-                        "BAD REQUEST",
+                        f"You are still in you recovery period, please try again after three months from your last donation which is {last_appointment.donationDate}",
                         400,
                         None,
                     ),
@@ -127,8 +127,8 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
                     )
                 return Response(
                     data=CustomResponse(
-                        f"An error occured while generating appointment",
-                        "BAD REQUEST",
+                        f"An error occured while booking appointment",
+                        "An error occured while booking appointment",
                         400,
                         serializer.errors,
                     ),
@@ -138,8 +138,8 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
             print(f"[CREATE-APPOINTMENT-ERROR] :: {e}")
             return Response(
                 data=CustomResponse(
-                    f"An error occured while generating appointment. {e}",
-                    "ERROR",
+                    f"An error occured while booking appointment. {e}",
+                    "An error occured while booking appointment",
                     400,
                     None,
                 ),
