@@ -1115,11 +1115,12 @@ class DonorUpdateProfileAvatarViewSet(APIView):
             serializer = self.serializer_class(profile, data=data)
 
             if serializer.is_valid():
-                print(f"[OLD-FILE-URL]  :: {profile.userAvatarPublicId}")
-                delete_old_file = cloudinary.uploader.destroy(profile.userAvatarPublicId, resource_type="raw")
-                
-                print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
-                print(f"[OLD-FILE-PUBLIC-URL]  :: {profile.userAvatarPublicId}")
+                if profile.userAvatarPublicId:
+                    print(f"[OLD-FILE-URL]  :: {profile.userAvatarPublicId}")
+                    delete_old_file = cloudinary.uploader.destroy(profile.userAvatarPublicId, resource_type="raw")
+                    
+                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                    print(f"[OLD-FILE-PUBLIC-URL]  :: {profile.userAvatarPublicId}")
                 
                 file = cloudinary.uploader.upload_large(
                     request.FILES["avatar"], folder="Medexer-API/media/user-avatar/"
