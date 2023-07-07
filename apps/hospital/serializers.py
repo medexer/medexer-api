@@ -129,12 +129,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     def get_donorInfo(self, obj):
         donor = User.objects.get(pkid=obj.donor.pkid)
+        profile = Profile.objects.get(user=obj.donor.pkid)
         donorKyc = KnowYourCustomer.objects.get(donor=obj.donor.pkid)
 
         data = {
             "id": donor.id,
             "pkid": donor.pkid,
-            "avatar": donor.avatar.url,
+            "userAvatar": profile.userAvatar.url,
             "donorId": donor.donorID,
             "email": donor.email,
             "fullName": donor.fullName,

@@ -51,6 +51,8 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "django_extensions",
+    "cloudinary",
+    "cloudinary_storage",
 ]
 
 DEFAULT_APPS = [
@@ -238,9 +240,17 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = str(BASE_DIR) + MEDIA_URL
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY"),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET"),
+}
+
+
+# MEDIA_URL = "/media/"
+# MEDIA_ROOT = str(BASE_DIR) + MEDIA_URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

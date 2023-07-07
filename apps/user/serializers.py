@@ -68,11 +68,11 @@ class DonorProfileUpdateSerializer(serializers.ModelSerializer):
     
 class DonorProfileAvatarUpdateSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
+        model = Profile
         fields = [
             "id",
             "pkid",
-            "avatar",
+            "userAvatar",
         ]
     
     

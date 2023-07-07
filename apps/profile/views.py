@@ -1,3 +1,4 @@
+import cloudinary
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -54,7 +55,7 @@ class HospitalProfileViewSet(APIView):
                 "city_province": request.data["city_province"],
                 "contact_number": request.data["contact_number"],
                 "about_hospital": request.data["about_hospital"],
-                "hospitalImage": request.FILES["hospitalImage"],
+                # "hospitalImage": request.FILES["hospitalImage"],
             }
 
             instance = Profile.objects.get(user=request.user.pkid)
@@ -62,8 +63,33 @@ class HospitalProfileViewSet(APIView):
             serializer = self.serializer_class(instance, data=data)
            
             if serializer.is_valid():
-                serializer.save()
+                
+                if len(request.FILES) > 0 and 'hospitalImage' in request.FILES:
+                    delete_old_file = cloudinary.uploader.destroy(instance.hospitalImagePublicId, resource_type="raw")
+                    
+                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                    
+                    file = cloudinary.uploader.upload_large(
+                        request.FILES["hospitalImage"], folder="Medexer-API/media/hospital-profile/"
+                    )
 
+                    serializer.save(hospitalImage=file['secure_url'], hospitalImagePublicId=file['public_id'])
+                else:
+                    serializer.save()
+                    
+                if len(request.FILES) > 0 and 'hospitalLogo' in request.FILES:
+                    delete_old_file = cloudinary.uploader.destroy(instance.hospitalLogoPublicId, resource_type="raw")
+                    
+                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                    
+                    file = cloudinary.uploader.upload_large(
+                        request.FILES["hospitalLogo"], folder="Medexer-API/media/hospital-profile/"
+                    )
+
+                    serializer.save(hospitalLogo=file['secure_url'], hospitaLlogoPublicId=file['public_id'])
+                else:
+                    serializer.save()
+                    
                 return Response(
                     data=CustomResponse(
                         "Hospital profile updated successfully.",

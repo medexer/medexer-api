@@ -1,4 +1,4 @@
-import os, googlemaps
+import os, googlemaps, cloudinary, time
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -177,8 +177,6 @@ class HospitalKYBViewSet(APIView):
             serializer = self.serializer_class(data=data)
 
             if serializer.is_valid():
-                serializer.save()
-                
                 geoData = ""
                 geocode_result = gmaps.geocode(
                     f"{request.data['address']}, {hospital.postalCode}, {request.data['city_province']}, {request.data['state']}"
@@ -195,15 +193,31 @@ class HospitalKYBViewSet(APIView):
                 hospital.address = request.data["address"]
                 hospital.save()
                 
+                
+                # PROFILE UPDATE
+                hospitalImageUpload = cloudinary.uploader.upload_large(
+                    request.FILES["hospitalImage"], folder="Medexer-API/media/hospital-profile/"
+                )
+                
+                time.sleep(3)
+                
+                hospitalLogoUpload = cloudinary.uploader.upload_large(
+                    request.FILES["hospitalLogo"], folder="Medexer-API/media/hospital-profile/"
+                )
                 profile.latitude = geoData['lat']
                 profile.longitude = geoData['lng']
                 profile.state = request.data["state"]
                 profile.address = request.data["address"]
                 profile.city_province = request.data["city_province"]
                 profile.about_hospital = request.data["description"]
-                profile.hospitalImage = request.FILES['hospitalImage']
+                profile.hospitalImage = hospitalImageUpload['secure_url']
+                profile.hospitalImagePublicId = hospitalImageUpload['public_id']
+                profile.hospitalLogo = hospitalLogoUpload['secure_url']
+                profile.hospitalLogoPublicId = hospitalLogoUpload['public_id']
+                # profile.hospitalImage = request.FILES['hospitalImage']
                 profile.save()
                 
+                serializer.save()
                 hospital_serializer = HospitalAuthSerializer(hospital)
 
                 return Response(

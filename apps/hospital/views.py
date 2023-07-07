@@ -1,5 +1,6 @@
 import os, requests, json
 from dotenv import load_dotenv
+from datetime import datetime, timedelta
 from rest_framework import generics, status
 from django.db.models.functions import Cast
 from django.db.models import Q, IntegerField
@@ -81,9 +82,14 @@ class DonorSearchViewSet(generics.GenericAPIView):
                         if item.bloodUnits < 20:
                             if profile.is_profile_updated and profile.latitude:
                                 donor = User.objects.get(pkid=profile.user.pkid)
+                                last_appointment = Appointment.objects.filter(Q(donor=profile.user.pkid)).first()
                                 
-                                if donor.is_donor:
-                                    query_set.append(donor)
+                                if last_appointment:
+                                    if donor.is_donor and datetime.now().date() > (last_appointment.donationDate + timedelta(days=3*30)):
+                                        query_set.append(donor)
+                                else:
+                                    if donor.is_donor:
+                                        query_set.append(donor)
                     else:
                         if profile.is_profile_updated and profile.latitude:
                             donor = User.objects.get(pkid=profile.user.pkid)
@@ -173,6 +179,7 @@ class InventoryItemViewSet(generics.GenericAPIView):
             inventory = Inventory.objects.get(
                 bloodGroup=instance.bloodGroup, hospital=request.user.pkid
             )
+            appointment = Appointment.objects.get(appointmentID=instance.appointmentID)
 
             if instance.bloodUnits < int(data["bloodUnits"]):
                 activity = f"{request.data['count']} pint added on {CurrentTimeStamp()}"
@@ -192,13 +199,15 @@ class InventoryItemViewSet(generics.GenericAPIView):
                     hospital=request.user,
                     bloodGroup=request.data["bloodGroup"],
                 )
-                Notification.objects.create(
-                    notificationType="APPOINTMENT",
-                    author=request.user,
-                    recipient=instance.donor,
-                    title=f"Blood Usage",
-                    message=f"{request.data['units']} pints of your blood was used in {request.user.hospitalName}.",
-                )
+                
+                if appointment.getNotifiedOnBloodUse == True:
+                    Notification.objects.create(
+                        notificationType="APPOINTMENT",
+                        author=request.user,
+                        recipient=instance.donor,
+                        title=f"Blood Usage",
+                        message=f"{request.data['units']} pints of your blood was used in {request.user.hospitalName}.",
+                    )
 
                 return Response(
                     data=CustomResponse(
@@ -354,7 +363,7 @@ class HospitalAppointmentViewSet(generics.GenericAPIView):
                     author=request.user,
                     recipient=instance.donor,
                     title=f"Appointment Schedule from {request.user.hospitalName}",
-                    message=request.data["message"],
+                    message=f"{request.data['message']} \n Your new appointment date is {request.data['date']}",
                 )
 
                 return Response(
@@ -421,10 +430,10 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                 
                 donorProfile.save()
                 
-                donor.in_recovery = True
-                donor.lastDonationDate = datetime.now().strftime('%Y-%m-%d')
+                # donor.in_recovery = True
+                # donor.lastDonationDate = datetime.now().strftime('%Y-%m-%d')
                 
-                donor.save()
+                # donor.save()
 
                 InventoryItem.objects.create(
                     bloodGroup=request.data['bloodGroup'],
