@@ -64,7 +64,7 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
                         "donor": request.user.pkid,
                         "message": request.data["message"],
                         "hospital": request.data["hospital"],
-                        "visitRecipient": request.data["visitRecipient"],
+                        "isForAdult": request.data["isForAdult"],
                         "getNotifiedOnBloodUse": request.data["getNotifiedOnBloodUse"],
                         "appointmentID": appointment_id_generator(),
                     }
