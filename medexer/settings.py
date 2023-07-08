@@ -180,7 +180,7 @@ CELERY_TASK_SERIALIZER = "json"
 # CELERY_TIMEZONE = 'Europe/Paris'
 CELERY_RESULT_BACKEND = "redis://localhost:6379"
 
-SECURE_SSL_REDIRECT = False
+# SECURE_SSL_REDIRECT = False
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
