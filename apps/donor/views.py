@@ -229,6 +229,7 @@ class DonationCentersLocationDataViewSet(generics.GenericAPIView):
             # _geocode_result = gmaps.geocode("VV28+HM9, 930103, Jos, Plateau")
 
             for center in donation_centers:
+                profile = Profile.objects.get(user=center.pkid)
                 _center_geocode_result = gmaps.geocode(
                     f"{center.address}, {center.postalCode}, {center.lga}, {center.state}"
                 )
@@ -240,6 +241,7 @@ class DonationCentersLocationDataViewSet(generics.GenericAPIView):
                         {
                             "centerName": center.hospitalName,
                             "email": f"{center.email}",
+                            "hospitalImage": profile.hospitalImage.url if profile.hospitalImage else None,
                             "address": f"{center.address}, {center.postalCode}, {center.lga}, {center.state} state.",
                             "location": result["geometry"]["location"],
                         }
