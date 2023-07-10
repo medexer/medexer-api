@@ -229,24 +229,25 @@ class DonationCentersLocationDataViewSet(generics.GenericAPIView):
             # _geocode_result = gmaps.geocode("VV28+HM9, 930103, Jos, Plateau")
 
             for center in donation_centers:
-                profile = Profile.objects.get(user=center.pkid)
-                _center_geocode_result = gmaps.geocode(
-                    f"{center.address}, {center.postalCode}, {center.lga}, {center.state}"
-                )
-                # print(f"{center.address}, {center.postalCode}, {center.lga}, {center.state}")
-                # print(_center_geocode_result)
-                for result in _center_geocode_result:
-                    # print(result)
-                    geocodeData.append(
-                        {
-                            "centerName": center.hospitalName,
-                            "email": f"{center.email}",
-                            "hospitalImage": profile.hospitalImage.url if profile.hospitalImage else None,
-                            "address": f"{center.address}, {center.postalCode}, {center.lga}, {center.state} state.",
-                            "location": result["geometry"]["location"],
-                        }
+                if center.is_kyc_updated == True:
+                    profile = Profile.objects.get(user=center.pkid)
+                    _center_geocode_result = gmaps.geocode(
+                        f"{center.address}, {center.postalCode}, {center.lga}, {center.state}"
                     )
-                    # print(geocodeData)
+                    # print(f"{center.address}, {center.postalCode}, {center.lga}, {center.state}")
+                    # print(_center_geocode_result)
+                    for result in _center_geocode_result:
+                        # print(result)
+                        geocodeData.append(
+                            {
+                                "centerName": center.hospitalName,
+                                "email": f"{center.email}",
+                                "hospitalImage": profile.hospitalImage.url if profile.hospitalImage else None,
+                                "address": f"{center.address}, {center.postalCode}, {center.lga}, {center.state} state.",
+                                "location": result["geometry"]["location"],
+                            }
+                        )
+                        # print(geocodeData)
 
             # print(f"[GEO] :: {geocodeData}")
             return Response(
