@@ -58,7 +58,7 @@ class DonorAppointmentViewSet(generics.GenericAPIView):
             # donor = User.objects.get(pkid=request.user.pkid)
             last_appointment = Appointment.objects.filter(Q(donor=request.user.pkid)).first()
             
-            if last_appointment:
+            if last_appointment != None:
                 if last_appointment and datetime.now().date() > (last_appointment.donationDate + timedelta(days=3*30)):
                     data = {
                         "donor": request.user.pkid,
