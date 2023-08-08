@@ -448,7 +448,7 @@ class HospitalProcessDonationViewSet(generics.GenericAPIView):
                     author=request.user,
                     recipient=instance.donor,
                     title=f"Donation Alert",
-                    message=f"You donation with {instance.hospital.hospitalName} has been successfully processed. We appreciate your patience as we handle your incentives within two working days.",
+                    message=f"Your donation with {instance.hospital.hospitalName} has been successfully processed. We appreciate your patience as we handle your incentives within two working days.",
                 )
                 DonationHistory.objects.create(
                     donor=instance.donor,

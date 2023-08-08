@@ -75,6 +75,7 @@ class DonorSerializer(serializers.ModelSerializer):
         
         data = {
             "nationality": profile.nationality,
+            "bloodGroup": profile.bloodGroup,
             "gender": profile.gender,
             "userAvatar": profile.userAvatar.url,
             "religion": profile.religion,
