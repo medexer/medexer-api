@@ -35,6 +35,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=255, blank=True, null=True, unique=True
     )
     is_kyc_updated = models.BooleanField(default=False)
+    accepted_terms = models.BooleanField(default=True)
+    accepted_privacypolicy = models.BooleanField(default=True)
     
 
     USERNAME_FIELD = "email"
