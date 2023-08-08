@@ -67,8 +67,8 @@ class DonorSearchViewSet(generics.GenericAPIView):
             
             inventories = Inventory.objects.filter(hospital=request.user.pkid)
             profiles = Profile.objects.filter(
-                Q(user__fullName__icontains=query) 
-                | 
+                # Q(user__fullName__icontains=query) 
+                # | 
                 Q(state__icontains=query) 
                 |
                 Q(city_province__icontains=query)
