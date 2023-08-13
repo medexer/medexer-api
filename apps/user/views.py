@@ -905,7 +905,28 @@ class HospitalSignInViewSet(APIView):
                 return Response(
                     data=CustomResponse(
                         "Unauthorized",
-                        "INVALID-CREDENTIALS",
+                        "INVALID CREDENTIALS",
+                        400,
+                        None,
+                    ),
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # if not hospital.is_approved:
+            #     return Response(
+            #         data=CustomResponse(
+            #             "Unauthorized",
+            #             "ACCOUNT UNVERIFIED",
+            #             400,
+            #             None,
+            #         ),
+            #         status=status.HTTP_400_BAD_REQUEST,
+            #     )
+                
+            if hospital.is_blocked:
+                return Response(
+                    data=CustomResponse(
+                        "Unauthorized",
+                        "UNAUTHORIZED ACCESS",
                         400,
                         None,
                     ),

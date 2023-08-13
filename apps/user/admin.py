@@ -61,6 +61,7 @@ class UserAdmin(BaseUserAdmin):
                     "is_donor",
                     "is_hospital",
                     "is_kyc_updated",
+                    "is_approved",
                     # "user_permissions",
                 )
             },

@@ -44,7 +44,7 @@ class HospitalProfileViewSet(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         
-    def put(self, request):
+    def put(self, request, *args, **kwargs):
         """
         Allows for a hospital to update their profile
         """
@@ -57,38 +57,38 @@ class HospitalProfileViewSet(APIView):
                 "about_hospital": request.data["about_hospital"],
                 # "hospitalImage": request.FILES["hospitalImage"],
             }
-
+            print(f'[PAYLOAD] :: {request}' )
             instance = Profile.objects.get(user=request.user.pkid)
             
             serializer = self.serializer_class(instance, data=data)
            
             if serializer.is_valid():
                 
-                if len(request.FILES) > 0 and 'hospitalImage' in request.FILES:
-                    delete_old_file = cloudinary.uploader.destroy(instance.hospitalImagePublicId, resource_type="raw")
+                # if len(request.FILES) > 0 and 'hospitalImage' in request.FILES:
+                #     delete_old_file = cloudinary.uploader.destroy(instance.hospitalImagePublicId, resource_type="raw")
                     
-                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                #     print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
                     
-                    file = cloudinary.uploader.upload_large(
-                        request.FILES["hospitalImage"], folder="Medexer-API/media/hospital-profile/"
-                    )
+                #     file = cloudinary.uploader.upload_large(
+                #         request.FILES["hospitalImage"], folder="Medexer-API/media/hospital-profile/"
+                #     )
 
-                    serializer.save(hospitalImage=file['secure_url'], hospitalImagePublicId=file['public_id'])
-                else:
-                    serializer.save()
+                #     serializer.save(hospitalImage=file['secure_url'], hospitalImagePublicId=file['public_id'])
+                # else:
+                #     serializer.save()
                     
-                if len(request.FILES) > 0 and 'hospitalLogo' in request.FILES:
-                    delete_old_file = cloudinary.uploader.destroy(instance.hospitalLogoPublicId, resource_type="raw")
+                # if len(request.FILES) > 0 and 'hospitalLogo' in request.FILES:
+                #     delete_old_file = cloudinary.uploader.destroy(instance.hospitalLogoPublicId, resource_type="raw")
                     
-                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                #     print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
                     
-                    file = cloudinary.uploader.upload_large(
-                        request.FILES["hospitalLogo"], folder="Medexer-API/media/hospital-profile/"
-                    )
+                #     file = cloudinary.uploader.upload_large(
+                #         request.FILES["hospitalLogo"], folder="Medexer-API/media/hospital-profile/"
+                #     )
 
-                    serializer.save(hospitalLogo=file['secure_url'], hospitaLlogoPublicId=file['public_id'])
-                else:
-                    serializer.save()
+                #     serializer.save(hospitalLogo=file['secure_url'], hospitaLlogoPublicId=file['public_id'])
+                # else:
+                serializer.save()
                     
                 return Response(
                     data=CustomResponse(
@@ -122,6 +122,89 @@ class HospitalProfileViewSet(APIView):
             
             
 hospital_profile_viewset = HospitalProfileViewSet.as_view()
+
+
+class HospitalMediaViewSet(APIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.ProfileSerializer
+            
+    def patch(self, request, *args, **kwargs):
+        """
+        Allows for a hospital to update their profile
+        """
+        try:
+            data = {}
+            
+            hospitalLogo = request.FILES["hospitalLogo"] if "hospitalLogo" in request.FILES else None
+            hospitalImage = request.FILES["hospitalImage"] if "hospitalImage" in request.FILES else None
+            
+            print(f'[PAYLOAD] :: {request.FILES}' )
+            
+            instance = Profile.objects.get(user=request.user.pkid)
+            
+            serializer = self.serializer_class(instance, data=data)
+           
+            if serializer.is_valid():
+                if 'hospitalImage' in request.FILES:
+                    delete_old_file = cloudinary.uploader.destroy(instance.hospitalImagePublicId, resource_type="raw")
+                    
+                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                    
+                    file = cloudinary.uploader.upload_large(
+                        hospitalImage, folder="Medexer-API/media/hospital-profile/"
+                    )
+
+                    serializer.save(hospitalImage=file['secure_url'], hospitalImagePublicId=file['public_id'])
+                else:
+                    serializer.save()
+                    
+                if 'hospitalLogo' in request.FILES:
+                    delete_old_file = cloudinary.uploader.destroy(instance.hospitalLogoPublicId, resource_type="raw")
+                    
+                    print(f"[DELETE-OLD-FILE]  :: {delete_old_file}")
+                    
+                    file = cloudinary.uploader.upload_large(
+                        hospitalLogo, folder="Medexer-API/media/hospital-profile/"
+                    )
+
+                    serializer.save(hospitalLogo=file['secure_url'], hospitaLlogoPublicId=file['public_id'])
+                else:
+                    serializer.save()
+                    
+                return Response(
+                    data=CustomResponse(
+                        "Hospital media updated successfully.",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+                
+            print(f"[UPDATE-HOSPITAL-MEDIA-ERROR-1] :: {serializer.errors}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating hospital media.",
+                    "BAD REQUEST",
+                    400,
+                    serializer.errors,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[UPDATE-HOSPITAL-MEDIA-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating hospital media. {e}",
+                    "ERROR",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+            
+hospital_media_viewset = HospitalMediaViewSet.as_view()
 
 
 class DonorProfileLocationViewSet(APIView):

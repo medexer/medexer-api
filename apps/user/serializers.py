@@ -111,6 +111,7 @@ class HospitalAuthSerializer(serializers.ModelSerializer):
             "postalCode",
             "is_active",
             "is_hospital",
+            "is_approved",
             "otp",
             "password",
             "is_kyc_updated",

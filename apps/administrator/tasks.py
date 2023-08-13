@@ -27,3 +27,26 @@ def send_integration_request_mail(target_mail, accessKey):
         print(f"[SEND-MAIL-SUCCESS]")
     except Exception as e:
         print(f"[SEND-MAIL-ERROR] :: {e}")
+
+
+
+def send_hospital_verification_mail(target_mail, hospitalName):
+    try:
+        subject = f"Medexer"
+        to = [target_mail]
+        from_email = os.getenv("EMAIL_HOST_USER")
+        msg_html = render_to_string(
+            "administrator/hospital_verification_template.html",
+            {
+                "hospitalName": hospitalName,
+            },
+        )
+        text_content = strip_tags(msg_html)
+
+        mail = EmailMultiAlternatives(subject, text_content, from_email, to)
+        mail.attach_alternative(msg_html, "text/html")
+        mail.send()
+
+        print(f"[SEND-VERIFICATION-MAIL-SUCCESS]")
+    except Exception as e:
+        print(f"[SEND-VERIFICATION-MAIL-ERROR] :: {e}")

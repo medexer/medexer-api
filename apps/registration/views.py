@@ -11,6 +11,7 @@ from apps.common.validations import registration_validations
 from .serializers import DonorKYCSerializer, HospitalKYBSerializer
 from apps.user.serializers import HospitalAuthSerializer, DonorAuthSerializer
 from apps.profile.models import Profile
+from .tasks import send_hospital_complaince_mail
 
 load_dotenv()
 
@@ -219,6 +220,8 @@ class HospitalKYBViewSet(APIView):
                 
                 serializer.save()
                 hospital_serializer = HospitalAuthSerializer(hospital)
+
+                send_hospital_complaince_mail(hospital.email, hospital.hospitalName)
 
                 return Response(
                     data=CustomResponse(

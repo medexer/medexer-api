@@ -6,7 +6,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from apps.common.custom_response import CustomResponse
-from .tasks import send_integration_request_mail
+from .tasks import send_integration_request_mail, send_hospital_verification_mail
 from apps.donor.models import Appointment
 from apps.hospital.serializers import HospitalComplaintHistorySerializer
 
@@ -224,6 +224,162 @@ class HospitalsViewSet(generics.GenericAPIView):
     
         
 hospitals_viewset = HospitalsViewSet.as_view()
+
+
+class HospitalApproveAccountViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.HospitalSerializer
+
+    def patch(self, request, hospital):
+        """
+        Allows for an administrator to approve a hospital account
+        """
+        try:
+            hospital = User.objects.get(pkid=hospital)
+            
+            data = {
+                "is_approved": True,
+            }
+            
+            serializer = self.serializer_class(hospital, data=data)
+            
+            if serializer.is_valid():
+                serializer.save()
+
+                send_hospital_verification_mail(hospital.email, hospital.hospitalName)
+                
+                return Response(
+                    data=CustomResponse(
+                        "Hospital account verified successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    "An error occured while updating hospital verification status.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[PATCH-HOSPITAL-VERIFICATION-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating hospital verification status. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+            
+    def put(self, request, hospital):
+        """
+        Allows for an administrator to block/unblock a hospital account
+        """
+        try:
+            hospital = User.objects.get(pkid=hospital)
+            
+            data = {
+                "is_blocked": request.data['is_blocked'],
+            }
+            
+            serializer = self.serializer_class(hospital, data=data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                return Response(
+                    data=CustomResponse(
+                        "Hospital account status updated successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    "An error occured while updating hospital account status.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[PATCH-HOSPITAL-BLOCKED-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating hospital account status. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    
+        
+hospital_approve_account_viewset = HospitalApproveAccountViewSet.as_view()
+
+
+class DonorBlockUnBlockAccountViewSet(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = serializers.DonorSerializer
+
+    def put(self, request, donor):
+        """
+        Allows for an administrator to block/unblock a donor account
+        """
+        try:
+            donor = User.objects.get(pkid=donor)
+            
+            data = {
+                "is_blocked": request.data['is_blocked'],
+            }
+            
+            serializer = self.serializer_class(donor, data=data)
+            
+            if serializer.is_valid():
+                serializer.save()
+                
+                return Response(
+                    data=CustomResponse(
+                        "Donor account status updated successfully",
+                        "SUCCESS",
+                        200,
+                        serializer.data,
+                    ),
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                data=CustomResponse(
+                    "An error occured while updating donor account status.",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            print(f"[PATCH-DONOR-BLOCKED-ERROR] :: {e}")
+            return Response(
+                data=CustomResponse(
+                    f"An error occured while updating donor account status. {e}",
+                    "BAD REQUEST",
+                    400,
+                    None,
+                ),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    
+        
+donor_block_unblock_account_viewset = DonorBlockUnBlockAccountViewSet.as_view()
 
 
 class DonorsViewSet(generics.GenericAPIView):

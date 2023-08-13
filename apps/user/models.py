@@ -31,6 +31,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_hospital = models.BooleanField(default=False)
     is_administrator = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
+    is_blocked = models.BooleanField(default=False)
     otp = models.CharField(
         max_length=255, blank=True, null=True, unique=True
     )

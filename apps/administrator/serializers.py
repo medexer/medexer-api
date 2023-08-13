@@ -3,7 +3,10 @@ from rest_framework import serializers
 from apps.donor.models import Appointment
 from apps.registration.models import KnowYourBusiness, KnowYourCustomer
 from .models import Integration, Complaint, ComplaintHistory, Notification, PaymentHistory
+from apps.profile.models import Profile
 
+# GLOBAL
+exists = False
 
 class IntegrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,6 +26,7 @@ class IntegrationSerializer(serializers.ModelSerializer):
 
 
 class HospitalSerializer(serializers.ModelSerializer):
+    profile_info = serializers.SerializerMethodField()
     registration_info = serializers.SerializerMethodField()
     
     class Meta:
@@ -36,26 +40,56 @@ class HospitalSerializer(serializers.ModelSerializer):
             'address',
             'state',
             'lga',
+            'is_approved',
+            'is_blocked',
             'postalCode',
             'registration_info',
+            'profile_info',
         ]
         
     def get_registration_info(self, obj):
-        hospital_kyb = KnowYourBusiness.objects.get(hospital=obj.pkid)
+        ids = []
         
+        hospital_kybs = KnowYourBusiness.objects.all()
+        
+        for kyb in hospital_kybs:   
+            ids.append(kyb.hospital.pkid)
+        
+        # print(f'[EXISTS] :: {ids} {type(ids)}')    
+        # print(f'[EXISTS] :: {obj.pkid} {type(obj.pkid)}')    
+        # print(f'[EXISTS] :: {obj.pkid in ids}')    
+        
+        if obj.pkid in ids:
+            hospital_kyb = KnowYourBusiness.objects.get(hospital=obj.pkid)
+            
+            data = {
+                "cacRegistrationID" : hospital_kyb.cacRegistrationID if hospital_kyb.cacRegistrationID else None,
+                "business_type" : hospital_kyb.business_type if hospital_kyb.business_type else None,
+                "incorporation_date" : hospital_kyb.incorporation_date if hospital_kyb.incorporation_date else None,
+                "address" : hospital_kyb.address if hospital_kyb.address else None,
+                "state" : hospital_kyb.state if hospital_kyb.state else None,
+                "city" : hospital_kyb.city if hospital_kyb.city else None,
+                "description" : hospital_kyb.description if hospital_kyb.description else None,
+            }
+            
+            return data
+        return {}
+    
+    def get_profile_info(self, obj):
+        hospital_profile = Profile.objects.get(user=obj.pkid)
+    
         data = {
-            "cacRegistrationID": hospital_kyb.cacRegistrationID if hospital_kyb.cacRegistrationID else None,
-            "websiteUrl": hospital_kyb.websiteUrl if hospital_kyb.websiteUrl else None,
-            "logo": hospital_kyb.logo if hospital_kyb.logo else None,
-            "address": hospital_kyb.address if hospital_kyb.address else None,
-            "description": hospital_kyb.description if hospital_kyb.description else None,
-            "identificationType": hospital_kyb.identificationType if hospital_kyb.identificationType else None,
+            "address" : hospital_profile.address if hospital_profile.address else None,
+            "state" : hospital_profile.state if hospital_profile.state else None,
+            "city_province" : hospital_profile.city_province if hospital_profile.city_province else None,
+            "hospitalImage" : hospital_profile.hospitalImage.url if hospital_profile.hospitalImage else None,
         }
         
         return data
 
 
 class DonorSerializer(serializers.ModelSerializer):
+    profile_info = serializers.SerializerMethodField()
     registration_info = serializers.SerializerMethodField()
     
     class Meta:
@@ -71,6 +105,8 @@ class DonorSerializer(serializers.ModelSerializer):
             'lga',
             "avatar",
             'postalCode',
+            'is_blocked',
+            'profile_info',
             'registration_info',
         ]
         
@@ -86,6 +122,17 @@ class DonorSerializer(serializers.ModelSerializer):
             "identificationType": donor_kyc.identificationType if donor_kyc.identificationType else None,
             "documentUploadCover": donor_kyc.documentUploadCover.url if donor_kyc.documentUploadCover.url else None,
             "documentUploadRear": donor_kyc.documentUploadRear.url if donor_kyc.documentUploadRear.url else None,
+        }
+        
+        return data
+    
+    def get_profile_info(self, obj):
+        profile = Profile.objects.get(user=obj.pkid)
+        
+        data = {
+            "userAvatar": profile.userAvatar.url,
+            "nationality": profile.nationality,
+            "state": profile.state,
         }
         
         return data
