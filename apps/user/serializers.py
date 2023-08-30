@@ -12,7 +12,7 @@ class DonorProfileSerializer(serializers.ModelSerializer):
             "dateOfBirth",
             "nationality",
             "gender",
-            "religion",
+            # "religion",
             "address",
             "state",
             "city_province",

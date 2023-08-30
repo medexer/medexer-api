@@ -270,7 +270,7 @@ class DonorSignUpViewSet(APIView):
                     user=User.objects.get(pkid=serializer.data['pkid']),
                     nationality=request.data['nationality'],
                     gender=request.data['gender'],
-                    religion=request.data['religion'],
+                    # religion=request.data['religion'],
                     address=request.data['address'],
                     state=request.data['state'],
                     city_province=request.data['city_province'],
@@ -1060,7 +1060,7 @@ class DonorUpdateProfileViewSet(APIView):
                     profile.dateOfBirth = request.data['dateOfBirth']
                     profile.nationality = request.data['nationality']
                     profile.gender = request.data['gender']
-                    profile.religion = request.data['religion']
+                    # profile.religion = request.data['religion']
                     profile.address = request.data['address']
                     profile.state = request.data['state']
                     profile.city_province = request.data['city_province']
@@ -1199,7 +1199,7 @@ class DonorUpdateSignupProfileViewSet(APIView):
                 "dateOfBirth": request.data["dateOfBirth"],
                 "nationality": request.data["nationality"],
                 "gender": request.data["gender"],
-                "religion": request.data["religion"],
+                # "religion": request.data["religion"],
                 "address": request.data["address"],
                 "state": request.data["state"],
                 "city_province": request.data["city_province"],
@@ -1271,7 +1271,7 @@ class DonorUpdateProfileWithGoogleSigninViewSet(APIView):
                 profile.dateOfBirth = request.data['dateOfBirth']
                 profile.nationality = request.data['nationality']
                 profile.gender = request.data['gender']
-                profile.religion = request.data['religion']
+                # profile.religion = request.data['religion']
                 profile.address = request.data['address']
                 profile.state = request.data['state']
                 profile.city_province = request.data['city_province']
