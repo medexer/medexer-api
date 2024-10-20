@@ -194,14 +194,21 @@ CELERY_RESULT_BACKEND = "redis://localhost:6379"
 #         "HOST": os.getenv("DB_HOST"),
 #         "PORT": os.getenv("DB_PORT"),
 #     }
+
+# DATABASES = {
+#     'default': dj_database_url.parse(os.getenv("DATABASE_URL"),
+#         conn_max_age=600,
+#         conn_health_checks=True,
+#     )
 # }
 
+db_url = os.getenv("DATABASE_URL")
+
+if db_url:
+    db_url += "?connect_timeout=10&options=-c%20max_connections=10"
+
 DATABASES = {
-    'default': dj_database_url.parse(os.getenv("DATABASE_URL")
-        ,
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': dj_database_url.parse(db_url, conn_health_checks=True)
 }
 
 
